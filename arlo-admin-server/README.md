@@ -2,6 +2,8 @@
 
 Arlo Admin 后端服务：REST API、JWT 认证、Casbin 功能权限、数据权限、文件存储、站内信、定时任务与监控等。
 
+在线体验：[http://101.200.43.49/](http://101.200.43.49/)（`admin` / `admin123`）
+
 仓库总览见根目录 [README.md](../README.md)；架构细节见 [HANDOFF.md](../HANDOFF.md)。
 
 ## 目录一览

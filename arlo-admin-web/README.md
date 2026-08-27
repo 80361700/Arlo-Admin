@@ -2,6 +2,8 @@
 
 Arlo Admin 管理端前端：动态菜单、权限指令、通用表格/表单、主题切换等。
 
+在线体验：[http://101.200.43.49/](http://101.200.43.49/)（`admin` / `admin123`）
+
 仓库总览见根目录 [README.md](../README.md)；架构细节见 [HANDOFF.md](../HANDOFF.md)。
 
 ## 技术栈
