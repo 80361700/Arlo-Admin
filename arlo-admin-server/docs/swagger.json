@@ -1,0 +1,2619 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "管理后台 API 接口文档",
+    "title": "arlo-admin API",
+    "contact": {
+      "name": "arlo-admin"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8090",
+  "basePath": "/api/v1",
+  "paths": {
+    "/auth/captcha": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "获取图形验证码",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.CaptchaResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/auth/info": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "获取当前用户信息",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.UserInfoResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "用户登录",
+        "parameters": [
+          {
+            "description": "登录请求",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.LoginRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.LoginResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "用户登出",
+        "parameters": [
+          {
+            "description": "可选 refreshToken",
+            "name": "request",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.LogoutRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/auth/menus": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "获取当前用户菜单",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.MenuTreeNode"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/auth/password": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "修改密码",
+        "parameters": [
+          {
+            "description": "修改密码",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.ChangePasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/auth/profile": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "更新个人资料",
+        "parameters": [
+          {
+            "description": "个人资料",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.UpdateProfileRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Auth"
+        ],
+        "summary": "刷新访问令牌",
+        "parameters": [
+          {
+            "description": "刷新令牌请求",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.RefreshRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.RefreshResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/file/list": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "File"
+        ],
+        "summary": "文件列表",
+        "parameters": [
+          {
+            "type": "integer",
+            "example": 1,
+            "description": "页码",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 10,
+            "description": "每页条数",
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "文件名",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "MIME类型",
+            "name": "mimeType",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "分类: image/video/audio/document/other",
+            "name": "category",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_file_dto.FileListResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/file/upload": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "File"
+        ],
+        "summary": "上传文件",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "上传的文件",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_file_dto.FileResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/file/{id}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "File"
+        ],
+        "summary": "删除文件",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "文件ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/file/{id}/download": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "File"
+        ],
+        "summary": "下载文件",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "文件ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "file"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/log/login/export": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Log"
+        ],
+        "summary": "导出登录日志",
+        "responses": {}
+      }
+    },
+    "/log/login/list": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Log"
+        ],
+        "summary": "登录日志列表",
+        "parameters": [
+          {
+            "type": "integer",
+            "example": 1,
+            "description": "页码",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 10,
+            "description": "每页条数",
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "用户名",
+            "name": "username",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "状态（0=失败 1=成功）",
+            "name": "status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_log_dto.LoginLogListResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/log/operation/export": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "Log"
+        ],
+        "summary": "导出操作日志",
+        "responses": {}
+      }
+    },
+    "/log/operation/list": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Log"
+        ],
+        "summary": "操作日志列表",
+        "parameters": [
+          {
+            "type": "integer",
+            "example": 1,
+            "description": "页码",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "example": 10,
+            "description": "每页条数",
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "操作人",
+            "name": "username",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "操作模块",
+            "name": "module",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "请求地址",
+            "name": "url",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "2026-07-01 00:00:00",
+            "description": "开始时间",
+            "name": "startTime",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "example": "2026-07-20 23:59:59",
+            "description": "结束时间",
+            "name": "endTime",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "状态（0=失败 1=成功）",
+            "name": "status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_log_dto.OperationLogListResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/monitor/server": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "tags": [
+          "Monitor"
+        ],
+        "summary": "服务监控",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/sysconfig": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Config"
+        ],
+        "summary": "更新配置",
+        "parameters": [
+          {
+            "description": "配置信息",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_sysconfig_dto.UpdateConfigRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Config"
+        ],
+        "summary": "创建配置",
+        "parameters": [
+          {
+            "description": "配置信息",
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_sysconfig_dto.CreateConfigRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/sysconfig/list": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Config"
+        ],
+        "summary": "配置列表",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "配置名称",
+            "name": "name",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "配置键",
+            "name": "key",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "配置类型",
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/sysconfig/public": {
+      "get": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Config"
+        ],
+        "summary": "公开系统配置",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_sysconfig_dto.PublicConfigResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/sysconfig/{id}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Config"
+        ],
+        "summary": "删除配置",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "配置ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/sysconfig/{key}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Config"
+        ],
+        "summary": "按 key 获取配置",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "配置键",
+            "name": "key",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/system/user": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "更新用户信息",
+        "parameters": [
+          {
+            "description": "更新用户请求",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_system_dto.UpdateUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "创建用户",
+        "parameters": [
+          {
+            "description": "创建用户请求",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_system_dto.CreateUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/system/user/export": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "导出用户",
+        "responses": {}
+      }
+    },
+    "/system/user/import": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "multipart/form-data"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "导入用户",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Excel 文件",
+            "name": "file",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/system/user/import/template": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/octet-stream"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "用户导入模板",
+        "responses": {}
+      }
+    },
+    "/system/user/list": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "用户分页列表",
+        "parameters": [
+          {
+            "type": "integer",
+            "default": 1,
+            "description": "页码",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 10,
+            "description": "每页条数",
+            "name": "pageSize",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "用户名",
+            "name": "username",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "昵称",
+            "name": "nickname",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "手机号",
+            "name": "phone",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "状态(0禁用 1启用)",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "部门ID",
+            "name": "deptId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_pkg_response.PageData"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/system/user/password": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "修改用户密码",
+        "parameters": [
+          {
+            "description": "修改密码请求",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_internal_modules_system_dto.UpdateUserPasswordRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/system/user/{id}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "获取用户详情",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "用户ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/definitions/arlo-admin_internal_modules_system_dto.UserResponse"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "删除用户",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "用户ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    },
+    "/system/user/{id}/unlock": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "System/User"
+        ],
+        "summary": "解锁用户",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "用户ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/arlo-admin_pkg_response.Response"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "arlo-admin_internal_modules_auth_dto.CaptchaResponse": {
+      "type": "object",
+      "properties": {
+        "captcha": {
+          "description": "验证码图片（base64）",
+          "type": "string",
+          "example": "data:image/png;base64,iVBORw0KGgo..."
+        },
+        "captchaId": {
+          "description": "验证码ID",
+          "type": "string",
+          "example": "abc123"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.ChangePasswordRequest": {
+      "type": "object",
+      "required": [
+        "newPassword",
+        "oldPassword"
+      ],
+      "properties": {
+        "newPassword": {
+          "type": "string",
+          "maxLength": 32,
+          "minLength": 6,
+          "example": "newpwd"
+        },
+        "oldPassword": {
+          "type": "string",
+          "example": "oldpwd"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.LoginRequest": {
+      "type": "object",
+      "required": [
+        "password",
+        "username"
+      ],
+      "properties": {
+        "captchaCode": {
+          "description": "验证码",
+          "type": "string",
+          "example": "1234"
+        },
+        "captchaId": {
+          "description": "验证码ID",
+          "type": "string",
+          "example": "abc123"
+        },
+        "password": {
+          "description": "密码",
+          "type": "string",
+          "example": "123456"
+        },
+        "username": {
+          "description": "用户名",
+          "type": "string",
+          "example": "admin"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.LoginResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "description": "访问令牌",
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIs..."
+        },
+        "expiresIn": {
+          "description": "过期时间（秒）",
+          "type": "integer",
+          "example": 7200
+        },
+        "refreshToken": {
+          "description": "刷新令牌",
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIs..."
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.LogoutRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIs..."
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.MenuTreeNode": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/arlo-admin_internal_modules_auth_dto.MenuTreeNode"
+          }
+        },
+        "component": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "keepAlive": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "parentId": {
+          "type": "integer"
+        },
+        "path": {
+          "type": "string"
+        },
+        "permission": {
+          "type": "string"
+        },
+        "sort": {
+          "type": "integer"
+        },
+        "type": {
+          "description": "1=目录 2=菜单 3=按钮",
+          "type": "integer"
+        },
+        "visible": {
+          "type": "integer"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.RefreshRequest": {
+      "type": "object",
+      "required": [
+        "refreshToken"
+      ],
+      "properties": {
+        "refreshToken": {
+          "description": "刷新令牌",
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIs..."
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.RefreshResponse": {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "description": "访问令牌",
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIs..."
+        },
+        "expiresIn": {
+          "description": "过期时间（秒）",
+          "type": "integer",
+          "example": 7200
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.UpdateProfileRequest": {
+      "type": "object",
+      "required": [
+        "nickname"
+      ],
+      "properties": {
+        "avatar": {
+          "type": "string",
+          "example": ""
+        },
+        "email": {
+          "type": "string",
+          "example": "zhangsan@example.com"
+        },
+        "gender": {
+          "type": "integer",
+          "example": 1
+        },
+        "nickname": {
+          "type": "string",
+          "maxLength": 32,
+          "example": "张三"
+        },
+        "phone": {
+          "type": "string",
+          "example": "13800138000"
+        },
+        "remark": {
+          "type": "string",
+          "example": ""
+        }
+      }
+    },
+    "arlo-admin_internal_modules_auth_dto.UserInfoResponse": {
+      "type": "object",
+      "properties": {
+        "avatar": {
+          "description": "头像URL",
+          "type": "string",
+          "example": ""
+        },
+        "dataScope": {
+          "description": "数据范围: 1=全部 2=自定义 3=本部门及以下 4=本部门 5=仅本人",
+          "type": "integer",
+          "example": 1
+        },
+        "deptId": {
+          "description": "部门ID",
+          "type": "integer",
+          "example": 1
+        },
+        "deptIds": {
+          "description": "自定义数据时可见的部门ID",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "deptName": {
+          "description": "部门名称",
+          "type": "string",
+          "example": "技术部"
+        },
+        "email": {
+          "description": "邮箱",
+          "type": "string",
+          "example": "admin@example.com"
+        },
+        "gender": {
+          "description": "性别（0=未知 1=男 2=女）",
+          "type": "integer",
+          "example": 1
+        },
+        "id": {
+          "description": "用户ID",
+          "type": "integer",
+          "example": 1
+        },
+        "mustChangePwd": {
+          "description": "是否强制改密",
+          "type": "boolean"
+        },
+        "nickname": {
+          "description": "昵称",
+          "type": "string",
+          "example": "系统管理员"
+        },
+        "permissions": {
+          "description": "权限标识列表",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "phone": {
+          "description": "手机号",
+          "type": "string",
+          "example": "13800138000"
+        },
+        "postNames": {
+          "description": "岗位名称列表",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "pwdExpired": {
+          "description": "密码是否已过期",
+          "type": "boolean"
+        },
+        "remark": {
+          "description": "备注",
+          "type": "string"
+        },
+        "roleNames": {
+          "description": "角色名称列表",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "description": "状态（0=禁用 1=启用）",
+          "type": "integer",
+          "example": 1
+        },
+        "username": {
+          "description": "用户名",
+          "type": "string",
+          "example": "admin"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_file_dto.FileListResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/arlo-admin_internal_modules_file_dto.FileResponse"
+          }
+        },
+        "page": {
+          "type": "integer",
+          "example": 1
+        },
+        "pageSize": {
+          "type": "integer",
+          "example": 10
+        },
+        "total": {
+          "type": "integer",
+          "example": 100
+        }
+      }
+    },
+    "arlo-admin_internal_modules_file_dto.FileResponse": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "description": "文件分类: image/video/audio/document/other",
+          "type": "string",
+          "example": "image"
+        },
+        "createdAt": {
+          "description": "上传时间",
+          "type": "string"
+        },
+        "id": {
+          "description": "文件ID",
+          "type": "integer",
+          "example": 1
+        },
+        "md5": {
+          "description": "MD5校验值",
+          "type": "string",
+          "example": "d41d8cd98f00b204e9800998ecf8427e"
+        },
+        "mimeType": {
+          "description": "MIME类型",
+          "type": "string",
+          "example": "image/png"
+        },
+        "name": {
+          "description": "原始文件名",
+          "type": "string",
+          "example": "avatar.png"
+        },
+        "size": {
+          "description": "文件大小(字节)",
+          "type": "integer",
+          "example": 102400
+        },
+        "uploader": {
+          "description": "上传者",
+          "type": "string",
+          "example": "admin"
+        },
+        "uploaderId": {
+          "description": "上传者ID",
+          "type": "integer",
+          "example": 1
+        },
+        "url": {
+          "description": "访问URL",
+          "type": "string",
+          "example": "http://localhost:8080/api/v1/file/1/download"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_log_dto.LoginLogListResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "description": "登录日志列表",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/arlo-admin_internal_modules_log_dto.LoginLogResponse"
+          }
+        },
+        "page": {
+          "description": "当前页码",
+          "type": "integer",
+          "example": 1
+        },
+        "pageSize": {
+          "description": "每页条数",
+          "type": "integer",
+          "example": 10
+        },
+        "total": {
+          "description": "总记录数",
+          "type": "integer",
+          "example": 100
+        }
+      }
+    },
+    "arlo-admin_internal_modules_log_dto.LoginLogResponse": {
+      "type": "object",
+      "properties": {
+        "browser": {
+          "description": "浏览器",
+          "type": "string",
+          "example": "Chrome 120"
+        },
+        "createdAt": {
+          "description": "登录时间",
+          "type": "string",
+          "example": "2026-07-10 12:00:00"
+        },
+        "id": {
+          "description": "日志ID",
+          "type": "integer",
+          "example": 1
+        },
+        "ip": {
+          "description": "登录IP",
+          "type": "string",
+          "example": "127.0.0.1"
+        },
+        "location": {
+          "description": "登录地点",
+          "type": "string",
+          "example": "本地"
+        },
+        "msg": {
+          "description": "提示消息",
+          "type": "string",
+          "example": "登录成功"
+        },
+        "os": {
+          "description": "操作系统",
+          "type": "string",
+          "example": "macOS"
+        },
+        "status": {
+          "description": "状态（0=失败 1=成功）",
+          "type": "integer",
+          "example": 1
+        },
+        "username": {
+          "description": "用户名",
+          "type": "string",
+          "example": "admin"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_log_dto.OperationLogListResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "description": "操作日志列表",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/arlo-admin_internal_modules_log_dto.OperationLogResponse"
+          }
+        },
+        "page": {
+          "description": "当前页码",
+          "type": "integer",
+          "example": 1
+        },
+        "pageSize": {
+          "description": "每页条数",
+          "type": "integer",
+          "example": 10
+        },
+        "total": {
+          "description": "总记录数",
+          "type": "integer",
+          "example": 500
+        }
+      }
+    },
+    "arlo-admin_internal_modules_log_dto.OperationLogResponse": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "description": "操作类型",
+          "type": "string",
+          "example": "查询"
+        },
+        "costTime": {
+          "description": "耗时（毫秒）",
+          "type": "integer",
+          "example": 12
+        },
+        "createdAt": {
+          "description": "操作时间",
+          "type": "string",
+          "example": "2026-07-10 12:00:00"
+        },
+        "errorMsg": {
+          "description": "错误信息",
+          "type": "string",
+          "example": ""
+        },
+        "id": {
+          "description": "日志ID",
+          "type": "integer",
+          "example": 1
+        },
+        "ip": {
+          "description": "操作IP",
+          "type": "string",
+          "example": "127.0.0.1"
+        },
+        "method": {
+          "description": "请求方法",
+          "type": "string",
+          "example": "GET"
+        },
+        "module": {
+          "description": "操作模块",
+          "type": "string",
+          "example": "用户管理"
+        },
+        "params": {
+          "description": "请求参数",
+          "type": "string",
+          "example": "{\"page\":1,\"pageSize\":10}"
+        },
+        "result": {
+          "description": "响应摘要",
+          "type": "string"
+        },
+        "status": {
+          "description": "状态（0=失败 1=成功）",
+          "type": "integer",
+          "example": 1
+        },
+        "url": {
+          "description": "请求URL",
+          "type": "string",
+          "example": "/api/v1/system/user/list"
+        },
+        "userAgent": {
+          "description": "用户代理",
+          "type": "string",
+          "example": "Mozilla/5.0..."
+        },
+        "userId": {
+          "description": "用户ID",
+          "type": "integer",
+          "example": 1
+        },
+        "username": {
+          "description": "用户名",
+          "type": "string",
+          "example": "admin"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_sysconfig_dto.ConfigResponse": {
+      "type": "object",
+      "properties": {
+        "createdAt": {
+          "description": "创建时间",
+          "type": "string"
+        },
+        "id": {
+          "description": "配置ID",
+          "type": "integer",
+          "example": 1
+        },
+        "key": {
+          "description": "配置键",
+          "type": "string",
+          "example": "sys.name"
+        },
+        "name": {
+          "description": "配置名称",
+          "type": "string",
+          "example": "系统名称"
+        },
+        "remark": {
+          "description": "备注",
+          "type": "string",
+          "example": "系统显示名称"
+        },
+        "type": {
+          "description": "类型: 1=文本,2=JSON,3=开关,4=图片",
+          "type": "integer",
+          "example": 1
+        },
+        "updatedAt": {
+          "description": "更新时间",
+          "type": "string"
+        },
+        "value": {
+          "description": "配置值",
+          "type": "string",
+          "example": "Arlo Admin"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_sysconfig_dto.CreateConfigRequest": {
+      "type": "object",
+      "required": [
+        "key",
+        "name",
+        "type"
+      ],
+      "properties": {
+        "key": {
+          "description": "配置键（唯一）",
+          "type": "string",
+          "example": "sys.name"
+        },
+        "name": {
+          "description": "配置名称",
+          "type": "string",
+          "example": "系统名称"
+        },
+        "remark": {
+          "description": "备注",
+          "type": "string",
+          "example": "系统显示名称"
+        },
+        "type": {
+          "description": "类型: 1=文本,2=JSON,3=开关,4=图片",
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "example": 1
+        },
+        "value": {
+          "description": "配置值（图片可空；开关默认 false）",
+          "type": "string",
+          "example": "Arlo Admin"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_sysconfig_dto.PublicConfigResponse": {
+      "type": "object",
+      "properties": {
+        "captcha": {
+          "description": "是否开启验证码 sys.captcha",
+          "type": "boolean",
+          "example": false
+        },
+        "logo": {
+          "description": "系统 Logo sys.logo",
+          "type": "string",
+          "example": ""
+        },
+        "name": {
+          "description": "系统名称 sys.name",
+          "type": "string",
+          "example": "Arlo Admin"
+        },
+        "version": {
+          "description": "系统版本 sys.version",
+          "type": "string",
+          "example": "1.0.0"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_sysconfig_dto.UpdateConfigRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "key",
+        "name",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "description": "配置ID",
+          "type": "integer",
+          "example": 1
+        },
+        "key": {
+          "description": "配置键（唯一）",
+          "type": "string",
+          "example": "sys.name"
+        },
+        "name": {
+          "description": "配置名称",
+          "type": "string",
+          "example": "系统名称"
+        },
+        "remark": {
+          "description": "备注",
+          "type": "string",
+          "example": "系统显示名称"
+        },
+        "type": {
+          "description": "类型: 1=文本,2=JSON,3=开关,4=图片",
+          "type": "integer",
+          "enum": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "example": 1
+        },
+        "value": {
+          "description": "配置值",
+          "type": "string",
+          "example": "Arlo Admin"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_system_dto.CreateUserRequest": {
+      "type": "object",
+      "required": [
+        "nickname",
+        "password",
+        "username"
+      ],
+      "properties": {
+        "avatar": {
+          "description": "头像URL",
+          "type": "string",
+          "example": "https://example.com/avatar.png"
+        },
+        "deptId": {
+          "description": "部门ID",
+          "type": "integer",
+          "example": 1
+        },
+        "email": {
+          "description": "邮箱",
+          "type": "string",
+          "example": "zhangsan@example.com"
+        },
+        "gender": {
+          "description": "性别（0=未知 1=男 2=女）",
+          "type": "integer",
+          "example": 1
+        },
+        "nickname": {
+          "description": "昵称",
+          "type": "string",
+          "maxLength": 32,
+          "example": "张三"
+        },
+        "password": {
+          "description": "密码",
+          "type": "string",
+          "maxLength": 32,
+          "minLength": 6,
+          "example": "123456"
+        },
+        "phone": {
+          "description": "手机号",
+          "type": "string",
+          "example": "13800138000"
+        },
+        "postIds": {
+          "description": "岗位ID列表",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "remark": {
+          "description": "备注",
+          "type": "string",
+          "example": "新员工"
+        },
+        "roleIds": {
+          "description": "角色ID列表",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "status": {
+          "description": "状态（0=禁用 1=启用）",
+          "type": "integer",
+          "example": 1
+        },
+        "username": {
+          "description": "用户名",
+          "type": "string",
+          "maxLength": 32,
+          "minLength": 2,
+          "example": "zhangsan"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_system_dto.UpdateUserPasswordRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "password"
+      ],
+      "properties": {
+        "id": {
+          "description": "用户ID",
+          "type": "integer",
+          "example": 1
+        },
+        "password": {
+          "description": "新密码",
+          "type": "string",
+          "maxLength": 32,
+          "minLength": 6,
+          "example": "newpwd"
+        }
+      }
+    },
+    "arlo-admin_internal_modules_system_dto.UpdateUserRequest": {
+      "type": "object",
+      "required": [
+        "id",
+        "nickname"
+      ],
+      "properties": {
+        "avatar": {
+          "description": "头像URL",
+          "type": "string",
+          "example": "https://example.com/avatar.png"
+        },
+        "deptId": {
+          "description": "部门ID",
+          "type": "integer",
+          "example": 1
+        },
+        "email": {
+          "description": "邮箱",
+          "type": "string",
+          "example": "zhangsan@example.com"
+        },
+        "gender": {
+          "description": "性别（0=未知 1=男 2=女）",
+          "type": "integer",
+          "example": 1
+        },
+        "id": {
+          "description": "用户ID",
+          "type": "integer",
+          "example": 1
+        },
+        "nickname": {
+          "description": "昵称",
+          "type": "string",
+          "maxLength": 32,
+          "example": "张三"
+        },
+        "phone": {
+          "description": "手机号",
+          "type": "string",
+          "example": "13800138000"
+        },
+        "postIds": {
+          "description": "岗位ID列表",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "remark": {
+          "description": "备注",
+          "type": "string",
+          "example": "更新备注"
+        },
+        "roleIds": {
+          "description": "角色ID列表",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "status": {
+          "description": "状态（0=禁用 1=启用）",
+          "type": "integer",
+          "example": 1
+        }
+      }
+    },
+    "arlo-admin_internal_modules_system_dto.UserResponse": {
+      "type": "object",
+      "properties": {
+        "avatar": {
+          "description": "头像URL",
+          "type": "string"
+        },
+        "createdAt": {
+          "description": "创建时间",
+          "type": "string",
+          "example": "2026-07-10 12:00:00"
+        },
+        "deptId": {
+          "description": "部门ID",
+          "type": "integer",
+          "example": 1
+        },
+        "deptName": {
+          "description": "部门名称",
+          "type": "string",
+          "example": "技术部"
+        },
+        "email": {
+          "description": "邮箱",
+          "type": "string",
+          "example": "admin@example.com"
+        },
+        "gender": {
+          "description": "性别（0=未知 1=男 2=女）",
+          "type": "integer",
+          "example": 1
+        },
+        "id": {
+          "description": "用户ID",
+          "type": "integer",
+          "example": 1
+        },
+        "nickname": {
+          "description": "昵称",
+          "type": "string",
+          "example": "系统管理员"
+        },
+        "phone": {
+          "description": "手机号",
+          "type": "string",
+          "example": "13800138000"
+        },
+        "postIds": {
+          "description": "岗位ID列表",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "postNames": {
+          "description": "岗位名称列表",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "remark": {
+          "description": "备注",
+          "type": "string"
+        },
+        "roleIds": {
+          "description": "角色ID列表",
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "roleNames": {
+          "description": "角色名称列表",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "description": "状态（0=禁用 1=启用）",
+          "type": "integer",
+          "example": 1
+        },
+        "username": {
+          "description": "用户名",
+          "type": "string",
+          "example": "admin"
+        }
+      }
+    },
+    "arlo-admin_pkg_response.PageData": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "description": "数据列表",
+          "type": "object"
+        },
+        "page": {
+          "description": "当前页码",
+          "type": "integer",
+          "example": 1
+        },
+        "pageSize": {
+          "description": "每页条数",
+          "type": "integer",
+          "example": 10
+        },
+        "total": {
+          "description": "总记录数",
+          "type": "integer",
+          "example": 100
+        }
+      }
+    },
+    "arlo-admin_pkg_response.Response": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "响应码（200=成功，>0=业务错误）",
+          "type": "integer",
+          "example": 200
+        },
+        "data": {
+          "description": "响应数据（具体类型取决于接口）",
+          "type": "object"
+        },
+        "msg": {
+          "description": "响应消息",
+          "type": "string",
+          "example": "success"
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}

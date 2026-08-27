@@ -1,0 +1,17 @@
+.git
+.gocache
+.workbuddy
+.backup
+.DS_Store
+**/.DS_Store
+**/node_modules
+**/dist
+**/build
+**/logs
+**/uploads
+**/*.log
+arlo-admin-server/migrations/archive
+deployments/docker/.env
+*.md
+!deployments/README.md
+!deployments/docker/README.md

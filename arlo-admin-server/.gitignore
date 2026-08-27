@@ -1,0 +1,41 @@
+# Binaries
+/build/
+/server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go coverage
+*.out
+
+# Go workspace file
+go.work
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+
+# Upload
+uploads/
+
+# 环境变量文件（含密码，绝不提交）
+.env
+.env.*

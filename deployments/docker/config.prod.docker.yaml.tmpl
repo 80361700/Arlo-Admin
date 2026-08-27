@@ -1,0 +1,26 @@
+# Generated at container start from environment variables. Do not edit by hand.
+server:
+  port: 8090
+  mode: release
+  enableSwagger: false
+  corsOrigins:
+    - "${CORS_ORIGIN}"
+
+database:
+  host: mysql
+  port: 3306
+  user: root
+  password: "${MYSQL_PASSWORD}"
+  dbname: arlo_admin
+
+redis:
+  host: redis
+  port: 6379
+  password: "${REDIS_PASSWORD}"
+
+jwt:
+  secret: "${JWT_SECRET}"
+
+log:
+  level: info
+  format: json

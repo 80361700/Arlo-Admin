@@ -1,0 +1,94 @@
+name: arlo-admin
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: arlo-admin-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-arlo_admin}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../../arlo-admin-server/migrations/001_baseline_v1.sql:/docker-entrypoint-initdb.d/001_baseline_v1.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - arlo
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: arlo-admin-redis
+    command:
+      - sh
+      - -c
+      - |
+        if [ -n "$$REDIS_PASSWORD" ]; then
+          exec redis-server --requirepass "$$REDIS_PASSWORD"
+        else
+          exec redis-server
+        fi
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'if [ -n "$$REDIS_PASSWORD" ]; then redis-cli -a "$$REDIS_PASSWORD" ping | grep -q PONG; else redis-cli ping | grep -q PONG; fi',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - arlo
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.api
+    container_name: arlo-admin-api
+    environment:
+      APP_ENV: prod
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+    volumes:
+      - api-logs:/app/logs
+      - api-uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - arlo
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile.web
+    container_name: arlo-admin-web
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      - api
+    networks:
+      - arlo
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  api-logs:
+  api-uploads:
+
+networks:
+  arlo:
+    driver: bridge

@@ -1,0 +1,75 @@
+/* 浅色主题（默认） */
+.theme-light {
+  .layout-sidebar {
+    background-color: #ffffff;
+  }
+
+  /* 混合模式 Logo 阴影更轻 */
+  &.layout-mix .nav-brand:not(.is-plain) {
+    --arlo-nav-brand-shadow: -2px 1px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .sidebar-container {
+    background: #fff;
+  }
+
+  .sidebar-logo {
+    border-right: 1px solid white;
+    height: 50px;
+    background: #fff;
+    border-bottom: 1px solid #e6e6e6;
+    box-shadow: -2px 1px 4px rgba(0, 0, 0, 0.12);
+
+    .logo-title {
+      color: #303133;
+    }
+  }
+
+  .sidebar-menu {
+    border-right: 1px solid #e6e6e6;
+    background-color: #ffffff !important;
+    --el-menu-bg-color: #ffffff;
+    --el-menu-text-color: #303133;
+    --el-menu-active-color: #409eff;
+    --el-menu-hover-bg-color: #ecf5ff;
+
+    .el-menu-item,
+    .el-sub-menu__title {
+      color: #303133 !important;
+    }
+
+    .el-menu-item.is-active {
+      color: #409eff !important;
+      background-color: transparent !important;
+    }
+
+    .el-sub-menu .el-menu {
+      background-color: #fff !important;
+    }
+
+    .el-sub-menu .el-menu .el-menu-item.is-active {
+      color: #409eff !important;
+      background-color: transparent !important;
+    }
+
+    .el-menu-item:hover,
+    .el-menu-item.is-active:hover,
+    .el-sub-menu__title:hover {
+      background-color: #ecf5ff !important;
+    }
+
+    .el-sub-menu .el-menu .el-menu-item:hover,
+    .el-sub-menu .el-menu .el-menu-item.is-active:hover {
+      background-color: #ecf5ff !important;
+    }
+
+    .el-menu-item:focus:not(:hover):not(.is-active),
+    .el-sub-menu__title:focus:not(:hover) {
+      background-color: transparent !important;
+    }
+
+    .el-sub-menu .el-menu .el-menu-item:focus:not(:hover):not(.is-active) {
+      background-color: transparent !important;
+    }
+  }
+}

@@ -1,0 +1,1734 @@
+basePath: /api/v1
+definitions:
+  arlo-admin_internal_modules_auth_dto.CaptchaResponse:
+    properties:
+      captcha:
+        description: 验证码图片（base64）
+        example: data:image/png;base64,iVBORw0KGgo...
+        type: string
+      captchaId:
+        description: 验证码ID
+        example: abc123
+        type: string
+    type: object
+  arlo-admin_internal_modules_auth_dto.ChangePasswordRequest:
+    properties:
+      newPassword:
+        example: newpwd
+        maxLength: 32
+        minLength: 6
+        type: string
+      oldPassword:
+        example: oldpwd
+        type: string
+    required:
+    - newPassword
+    - oldPassword
+    type: object
+  arlo-admin_internal_modules_auth_dto.LoginRequest:
+    properties:
+      captchaCode:
+        description: 验证码
+        example: "1234"
+        type: string
+      captchaId:
+        description: 验证码ID
+        example: abc123
+        type: string
+      password:
+        description: 密码
+        example: "123456"
+        type: string
+      username:
+        description: 用户名
+        example: admin
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  arlo-admin_internal_modules_auth_dto.LoginResponse:
+    properties:
+      accessToken:
+        description: 访问令牌
+        example: eyJhbGciOiJIUzI1NiIs...
+        type: string
+      expiresIn:
+        description: 过期时间（秒）
+        example: 7200
+        type: integer
+      refreshToken:
+        description: 刷新令牌
+        example: eyJhbGciOiJIUzI1NiIs...
+        type: string
+    type: object
+  arlo-admin_internal_modules_auth_dto.LogoutRequest:
+    properties:
+      refreshToken:
+        example: eyJhbGciOiJIUzI1NiIs...
+        type: string
+    type: object
+  arlo-admin_internal_modules_auth_dto.MenuTreeNode:
+    properties:
+      children:
+        items:
+          $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.MenuTreeNode'
+        type: array
+      component:
+        type: string
+      icon:
+        type: string
+      id:
+        type: integer
+      keepAlive:
+        type: integer
+      name:
+        type: string
+      parentId:
+        type: integer
+      path:
+        type: string
+      permission:
+        type: string
+      sort:
+        type: integer
+      type:
+        description: 1=目录 2=菜单 3=按钮
+        type: integer
+      visible:
+        type: integer
+    type: object
+  arlo-admin_internal_modules_auth_dto.RefreshRequest:
+    properties:
+      refreshToken:
+        description: 刷新令牌
+        example: eyJhbGciOiJIUzI1NiIs...
+        type: string
+    required:
+    - refreshToken
+    type: object
+  arlo-admin_internal_modules_auth_dto.RefreshResponse:
+    properties:
+      accessToken:
+        description: 访问令牌
+        example: eyJhbGciOiJIUzI1NiIs...
+        type: string
+      expiresIn:
+        description: 过期时间（秒）
+        example: 7200
+        type: integer
+    type: object
+  arlo-admin_internal_modules_auth_dto.UpdateProfileRequest:
+    properties:
+      avatar:
+        example: ""
+        type: string
+      email:
+        example: zhangsan@example.com
+        type: string
+      gender:
+        example: 1
+        type: integer
+      nickname:
+        example: 张三
+        maxLength: 32
+        type: string
+      phone:
+        example: "13800138000"
+        type: string
+      remark:
+        example: ""
+        type: string
+    required:
+    - nickname
+    type: object
+  arlo-admin_internal_modules_auth_dto.UserInfoResponse:
+    properties:
+      avatar:
+        description: 头像URL
+        example: ""
+        type: string
+      dataScope:
+        description: '数据范围: 1=全部 2=自定义 3=本部门及以下 4=本部门 5=仅本人'
+        example: 1
+        type: integer
+      deptId:
+        description: 部门ID
+        example: 1
+        type: integer
+      deptIds:
+        description: 自定义数据时可见的部门ID
+        items:
+          type: integer
+        type: array
+      deptName:
+        description: 部门名称
+        example: 技术部
+        type: string
+      email:
+        description: 邮箱
+        example: admin@example.com
+        type: string
+      gender:
+        description: 性别（0=未知 1=男 2=女）
+        example: 1
+        type: integer
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      mustChangePwd:
+        description: 是否强制改密
+        type: boolean
+      nickname:
+        description: 昵称
+        example: 系统管理员
+        type: string
+      permissions:
+        description: 权限标识列表
+        items:
+          type: string
+        type: array
+      phone:
+        description: 手机号
+        example: "13800138000"
+        type: string
+      postNames:
+        description: 岗位名称列表
+        items:
+          type: string
+        type: array
+      pwdExpired:
+        description: 密码是否已过期
+        type: boolean
+      remark:
+        description: 备注
+        type: string
+      roleNames:
+        description: 角色名称列表
+        items:
+          type: string
+        type: array
+      status:
+        description: 状态（0=禁用 1=启用）
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: admin
+        type: string
+    type: object
+  arlo-admin_internal_modules_file_dto.FileListResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/arlo-admin_internal_modules_file_dto.FileResponse'
+        type: array
+      page:
+        example: 1
+        type: integer
+      pageSize:
+        example: 10
+        type: integer
+      total:
+        example: 100
+        type: integer
+    type: object
+  arlo-admin_internal_modules_file_dto.FileResponse:
+    properties:
+      category:
+        description: '文件分类: image/video/audio/document/other'
+        example: image
+        type: string
+      createdAt:
+        description: 上传时间
+        type: string
+      id:
+        description: 文件ID
+        example: 1
+        type: integer
+      md5:
+        description: MD5校验值
+        example: d41d8cd98f00b204e9800998ecf8427e
+        type: string
+      mimeType:
+        description: MIME类型
+        example: image/png
+        type: string
+      name:
+        description: 原始文件名
+        example: avatar.png
+        type: string
+      size:
+        description: 文件大小(字节)
+        example: 102400
+        type: integer
+      uploader:
+        description: 上传者
+        example: admin
+        type: string
+      uploaderId:
+        description: 上传者ID
+        example: 1
+        type: integer
+      url:
+        description: 访问URL
+        example: http://localhost:8080/api/v1/file/1/download
+        type: string
+    type: object
+
+
+  arlo-admin_internal_modules_log_dto.LoginLogListResponse:
+    properties:
+      list:
+        description: 登录日志列表
+        items:
+          $ref: '#/definitions/arlo-admin_internal_modules_log_dto.LoginLogResponse'
+        type: array
+      page:
+        description: 当前页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页条数
+        example: 10
+        type: integer
+      total:
+        description: 总记录数
+        example: 100
+        type: integer
+    type: object
+  arlo-admin_internal_modules_log_dto.LoginLogResponse:
+    properties:
+      browser:
+        description: 浏览器
+        example: Chrome 120
+        type: string
+      createdAt:
+        description: 登录时间
+        example: "2026-07-10 12:00:00"
+        type: string
+      id:
+        description: 日志ID
+        example: 1
+        type: integer
+      ip:
+        description: 登录IP
+        example: 127.0.0.1
+        type: string
+      location:
+        description: 登录地点
+        example: 本地
+        type: string
+      msg:
+        description: 提示消息
+        example: 登录成功
+        type: string
+      os:
+        description: 操作系统
+        example: macOS
+        type: string
+      status:
+        description: 状态（0=失败 1=成功）
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: admin
+        type: string
+    type: object
+  arlo-admin_internal_modules_log_dto.OperationLogListResponse:
+    properties:
+      list:
+        description: 操作日志列表
+        items:
+          $ref: '#/definitions/arlo-admin_internal_modules_log_dto.OperationLogResponse'
+        type: array
+      page:
+        description: 当前页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页条数
+        example: 10
+        type: integer
+      total:
+        description: 总记录数
+        example: 500
+        type: integer
+    type: object
+  arlo-admin_internal_modules_log_dto.OperationLogResponse:
+    properties:
+      action:
+        description: 操作类型
+        example: 查询
+        type: string
+      costTime:
+        description: 耗时（毫秒）
+        example: 12
+        type: integer
+      createdAt:
+        description: 操作时间
+        example: "2026-07-10 12:00:00"
+        type: string
+      errorMsg:
+        description: 错误信息
+        example: ""
+        type: string
+      id:
+        description: 日志ID
+        example: 1
+        type: integer
+      ip:
+        description: 操作IP
+        example: 127.0.0.1
+        type: string
+      method:
+        description: 请求方法
+        example: GET
+        type: string
+      module:
+        description: 操作模块
+        example: 用户管理
+        type: string
+      params:
+        description: 请求参数
+        example: '{"page":1,"pageSize":10}'
+        type: string
+      result:
+        description: 响应摘要
+        type: string
+      status:
+        description: 状态（0=失败 1=成功）
+        example: 1
+        type: integer
+      url:
+        description: 请求URL
+        example: /api/v1/system/user/list
+        type: string
+      userAgent:
+        description: 用户代理
+        example: Mozilla/5.0...
+        type: string
+      userId:
+        description: 用户ID
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: admin
+        type: string
+    type: object
+  arlo-admin_internal_modules_sysconfig_dto.ConfigResponse:
+    properties:
+      createdAt:
+        description: 创建时间
+        type: string
+      id:
+        description: 配置ID
+        example: 1
+        type: integer
+      key:
+        description: 配置键
+        example: sys.name
+        type: string
+      name:
+        description: 配置名称
+        example: 系统名称
+        type: string
+      remark:
+        description: 备注
+        example: 系统显示名称
+        type: string
+      type:
+        description: '类型: 1=文本,2=JSON,3=开关,4=图片'
+        example: 1
+        type: integer
+      updatedAt:
+        description: 更新时间
+        type: string
+      value:
+        description: 配置值
+        example: Arlo Admin
+        type: string
+    type: object
+  arlo-admin_internal_modules_sysconfig_dto.CreateConfigRequest:
+    properties:
+      key:
+        description: 配置键（唯一）
+        example: sys.name
+        type: string
+      name:
+        description: 配置名称
+        example: 系统名称
+        type: string
+      remark:
+        description: 备注
+        example: 系统显示名称
+        type: string
+      type:
+        description: '类型: 1=文本,2=JSON,3=开关,4=图片'
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        example: 1
+        type: integer
+      value:
+        description: 配置值（图片可空；开关默认 false）
+        example: Arlo Admin
+        type: string
+    required:
+    - key
+    - name
+    - type
+    type: object
+  arlo-admin_internal_modules_sysconfig_dto.PublicConfigResponse:
+    properties:
+      captcha:
+        description: 是否开启验证码 sys.captcha
+        example: false
+        type: boolean
+      logo:
+        description: 系统 Logo sys.logo
+        example: ""
+        type: string
+      name:
+        description: 系统名称 sys.name
+        example: Arlo Admin
+        type: string
+      version:
+        description: 系统版本 sys.version
+        example: 1.0.0
+        type: string
+    type: object
+  arlo-admin_internal_modules_sysconfig_dto.UpdateConfigRequest:
+    properties:
+      id:
+        description: 配置ID
+        example: 1
+        type: integer
+      key:
+        description: 配置键（唯一）
+        example: sys.name
+        type: string
+      name:
+        description: 配置名称
+        example: 系统名称
+        type: string
+      remark:
+        description: 备注
+        example: 系统显示名称
+        type: string
+      type:
+        description: '类型: 1=文本,2=JSON,3=开关,4=图片'
+        enum:
+        - 1
+        - 2
+        - 3
+        - 4
+        example: 1
+        type: integer
+      value:
+        description: 配置值
+        example: Arlo Admin
+        type: string
+    required:
+    - id
+    - key
+    - name
+    - type
+    type: object
+  arlo-admin_internal_modules_system_dto.CreateUserRequest:
+    properties:
+      avatar:
+        description: 头像URL
+        example: https://example.com/avatar.png
+        type: string
+      deptId:
+        description: 部门ID
+        example: 1
+        type: integer
+      email:
+        description: 邮箱
+        example: zhangsan@example.com
+        type: string
+      gender:
+        description: 性别（0=未知 1=男 2=女）
+        example: 1
+        type: integer
+      nickname:
+        description: 昵称
+        example: 张三
+        maxLength: 32
+        type: string
+      password:
+        description: 密码
+        example: "123456"
+        maxLength: 32
+        minLength: 6
+        type: string
+      phone:
+        description: 手机号
+        example: "13800138000"
+        type: string
+      postIds:
+        description: 岗位ID列表
+        items:
+          type: integer
+        type: array
+      remark:
+        description: 备注
+        example: 新员工
+        type: string
+      roleIds:
+        description: 角色ID列表
+        items:
+          type: integer
+        type: array
+      status:
+        description: 状态（0=禁用 1=启用）
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: zhangsan
+        maxLength: 32
+        minLength: 2
+        type: string
+    required:
+    - nickname
+    - password
+    - username
+    type: object
+  arlo-admin_internal_modules_system_dto.UpdateUserPasswordRequest:
+    properties:
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      password:
+        description: 新密码
+        example: newpwd
+        maxLength: 32
+        minLength: 6
+        type: string
+    required:
+    - id
+    - password
+    type: object
+  arlo-admin_internal_modules_system_dto.UpdateUserRequest:
+    properties:
+      avatar:
+        description: 头像URL
+        example: https://example.com/avatar.png
+        type: string
+      deptId:
+        description: 部门ID
+        example: 1
+        type: integer
+      email:
+        description: 邮箱
+        example: zhangsan@example.com
+        type: string
+      gender:
+        description: 性别（0=未知 1=男 2=女）
+        example: 1
+        type: integer
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      nickname:
+        description: 昵称
+        example: 张三
+        maxLength: 32
+        type: string
+      phone:
+        description: 手机号
+        example: "13800138000"
+        type: string
+      postIds:
+        description: 岗位ID列表
+        items:
+          type: integer
+        type: array
+      remark:
+        description: 备注
+        example: 更新备注
+        type: string
+      roleIds:
+        description: 角色ID列表
+        items:
+          type: integer
+        type: array
+      status:
+        description: 状态（0=禁用 1=启用）
+        example: 1
+        type: integer
+    required:
+    - id
+    - nickname
+    type: object
+  arlo-admin_internal_modules_system_dto.UserResponse:
+    properties:
+      avatar:
+        description: 头像URL
+        type: string
+      createdAt:
+        description: 创建时间
+        example: "2026-07-10 12:00:00"
+        type: string
+      deptId:
+        description: 部门ID
+        example: 1
+        type: integer
+      deptName:
+        description: 部门名称
+        example: 技术部
+        type: string
+      email:
+        description: 邮箱
+        example: admin@example.com
+        type: string
+      gender:
+        description: 性别（0=未知 1=男 2=女）
+        example: 1
+        type: integer
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      nickname:
+        description: 昵称
+        example: 系统管理员
+        type: string
+      phone:
+        description: 手机号
+        example: "13800138000"
+        type: string
+      postIds:
+        description: 岗位ID列表
+        items:
+          type: integer
+        type: array
+      postNames:
+        description: 岗位名称列表
+        items:
+          type: string
+        type: array
+      remark:
+        description: 备注
+        type: string
+      roleIds:
+        description: 角色ID列表
+        items:
+          type: integer
+        type: array
+      roleNames:
+        description: 角色名称列表
+        items:
+          type: string
+        type: array
+      status:
+        description: 状态（0=禁用 1=启用）
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: admin
+        type: string
+    type: object
+  arlo-admin_pkg_response.PageData:
+    properties:
+      list:
+        description: 数据列表
+        type: object
+      page:
+        description: 当前页码
+        example: 1
+        type: integer
+      pageSize:
+        description: 每页条数
+        example: 10
+        type: integer
+      total:
+        description: 总记录数
+        example: 100
+        type: integer
+    type: object
+  arlo-admin_pkg_response.Response:
+    properties:
+      code:
+        description: 响应码（200=成功，>0=业务错误）
+        example: 200
+        type: integer
+      data:
+        description: 响应数据（具体类型取决于接口）
+        type: object
+      msg:
+        description: 响应消息
+        example: success
+        type: string
+    type: object
+host: localhost:8090
+info:
+  contact:
+    name: arlo-admin
+  description: 管理后台 API 接口文档
+  title: arlo-admin API
+  version: 1.0.0
+paths:
+  /auth/captcha:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.CaptchaResponse'
+              type: object
+      summary: 获取图形验证码
+      tags:
+      - Auth
+  /auth/info:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.UserInfoResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取当前用户信息
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 登录请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      summary: 用户登录
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 可选 refreshToken
+        in: body
+        name: request
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.LogoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 用户登出
+      tags:
+      - Auth
+  /auth/menus:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.MenuTreeNode'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取当前用户菜单
+      tags:
+      - Auth
+  /auth/password:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 修改密码
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 修改密码
+      tags:
+      - Auth
+  /auth/profile:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 个人资料
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新个人资料
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 刷新令牌请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_auth_dto.RefreshResponse'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      summary: 刷新访问令牌
+      tags:
+      - Auth
+  /file/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 文件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除文件
+      tags:
+      - File
+  /file/{id}/download:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 文件ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 下载文件
+      tags:
+      - File
+  /file/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 页码
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        example: 10
+        in: query
+        name: pageSize
+        type: integer
+      - description: 文件名
+        in: query
+        name: name
+        type: string
+      - description: MIME类型
+        in: query
+        name: mimeType
+        type: string
+      - description: '分类: image/video/audio/document/other'
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_file_dto.FileListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 文件列表
+      tags:
+      - File
+  /file/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 上传的文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_file_dto.FileResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 上传文件
+      tags:
+      - File
+
+  /log/login/export:
+    get:
+      produces:
+      - application/octet-stream
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: 导出登录日志
+      tags:
+      - Log
+  /log/login/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 页码
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        example: 10
+        in: query
+        name: pageSize
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 状态（0=失败 1=成功）
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_log_dto.LoginLogListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 登录日志列表
+      tags:
+      - Log
+  /log/operation/export:
+    get:
+      produces:
+      - application/octet-stream
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: 导出操作日志
+      tags:
+      - Log
+  /log/operation/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 页码
+        example: 1
+        in: query
+        name: page
+        type: integer
+      - description: 每页条数
+        example: 10
+        in: query
+        name: pageSize
+        type: integer
+      - description: 操作人
+        in: query
+        name: username
+        type: string
+      - description: 操作模块
+        in: query
+        name: module
+        type: string
+      - description: 请求地址
+        in: query
+        name: url
+        type: string
+      - description: 开始时间
+        example: "2026-07-01 00:00:00"
+        in: query
+        name: startTime
+        type: string
+      - description: 结束时间
+        example: "2026-07-20 23:59:59"
+        in: query
+        name: endTime
+        type: string
+      - description: 状态（0=失败 1=成功）
+        in: query
+        name: status
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_log_dto.OperationLogListResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 操作日志列表
+      tags:
+      - Log
+  /monitor/server:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 服务监控
+      tags:
+      - Monitor
+  /sysconfig:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 配置信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_sysconfig_dto.CreateConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建配置
+      tags:
+      - Config
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 配置信息
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_sysconfig_dto.UpdateConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新配置
+      tags:
+      - Config
+  /sysconfig/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除配置
+      tags:
+      - Config
+  /sysconfig/{key}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 配置键
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 按 key 获取配置
+      tags:
+      - Config
+  /sysconfig/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 配置名称
+        in: query
+        name: name
+        type: string
+      - description: 配置键
+        in: query
+        name: key
+        type: string
+      - description: 配置类型
+        in: query
+        name: type
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/arlo-admin_internal_modules_sysconfig_dto.ConfigResponse'
+                  type: array
+              type: object
+      security:
+      - BearerAuth: []
+      summary: 配置列表
+      tags:
+      - Config
+  /sysconfig/public:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_sysconfig_dto.PublicConfigResponse'
+              type: object
+      summary: 公开系统配置
+      tags:
+      - Config
+  /system/user:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 创建用户请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_system_dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建用户
+      tags:
+      - System/User
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 更新用户请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_system_dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新用户信息
+      tags:
+      - System/User
+  /system/user/{id}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除用户
+      tags:
+      - System/User
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_internal_modules_system_dto.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取用户详情
+      tags:
+      - System/User
+  /system/user/{id}/unlock:
+    put:
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 解锁用户
+      tags:
+      - System/User
+  /system/user/export:
+    get:
+      produces:
+      - application/octet-stream
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: 导出用户
+      tags:
+      - System/User
+  /system/user/import:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Excel 文件
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 导入用户
+      tags:
+      - System/User
+  /system/user/import/template:
+    get:
+      produces:
+      - application/octet-stream
+      responses: {}
+      security:
+      - BearerAuth: []
+      summary: 用户导入模板
+      tags:
+      - System/User
+  /system/user/list:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - default: 1
+        description: 页码
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: 每页条数
+        in: query
+        name: pageSize
+        type: integer
+      - description: 用户名
+        in: query
+        name: username
+        type: string
+      - description: 昵称
+        in: query
+        name: nickname
+        type: string
+      - description: 手机号
+        in: query
+        name: phone
+        type: string
+      - description: 状态(0禁用 1启用)
+        in: query
+        name: status
+        type: integer
+      - description: 部门ID
+        in: query
+        name: deptId
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/arlo-admin_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/arlo-admin_pkg_response.PageData'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 用户分页列表
+      tags:
+      - System/User
+  /system/user/password:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: 修改密码请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/arlo-admin_internal_modules_system_dto.UpdateUserPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/arlo-admin_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 修改用户密码
+      tags:
+      - System/User
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

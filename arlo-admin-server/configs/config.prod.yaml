@@ -1,0 +1,58 @@
+# ============================================================
+# arlo-admin 生产环境覆盖配置（非 Docker 单机 / 宝塔）
+# 只写与 config.yaml 不同的项
+# 启动：APP_ENV=prod ./arlo-admin
+#
+# Docker Compose 请勿依赖本文件中的密钥：容器启动时由
+# deployments/docker/entrypoint-api.sh 按环境变量生成 config.prod.yaml
+# ============================================================
+
+server:
+  mode: release
+  enableSwagger: false
+  # 按实际前端访问域名填写（含协议）；同源 Nginx 反代时填站点 URL
+  corsOrigins:
+    - "https://admin.example.com"
+
+database:
+  host: 127.0.0.1
+  # 生产务必修改
+  password: "CHANGE_ME_MYSQL_PASSWORD"
+
+redis:
+  host: 127.0.0.1
+  password: ""
+
+jwt:
+  # 生产务必改为足够长的随机串
+  secret: "CHANGE_ME_JWT_SECRET"
+
+log:
+  level: info
+  format: json
+  # 相对路径会按 --config 所在项目根解析；也可写成绝对路径，如 /www/wwwroot/arlo-admin/logs/app.log
+  # filePath: logs/app.log
+
+# 本地上传目录（相对路径同样按项目根解析）。多实例请改用 OSS
+# storage:
+#   driver: local
+#   local:
+#     path: uploads/
+
+# 多实例部署请改用 OSS，并填写下方密钥
+# storage:
+#   driver: oss
+#   oss:
+#     endpoint: oss-cn-hangzhou.aliyuncs.com
+#     accessKeyId: ""
+#     accessKeySecret: ""
+#     bucketName: ""
+
+# 生产改为 aliyun 或 tencent，并填入密钥/签名/模板
+# sms:
+#   provider: aliyun
+#   aliyun:
+#     accessKeyId: ""
+#     accessKeySecret: ""
+#     signName: ""
+#     templateCode: ""

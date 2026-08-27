@@ -1,0 +1,22 @@
+[Unit]
+Description=Arlo Admin API
+After=network.target mysql.service redis.service
+Wants=mysql.service redis.service
+
+[Service]
+Type=simple
+User=arlo
+Group=arlo
+WorkingDirectory=/opt/arlo-admin
+Environment=APP_ENV=prod
+ExecStart=/opt/arlo-admin/bin/arlo-admin --config=/opt/arlo-admin/configs/config.yaml --prod-config=/opt/arlo-admin/configs/config.prod.yaml
+Restart=on-failure
+RestartSec=5
+LimitNOFILE=65535
+
+# Hardening (optional)
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

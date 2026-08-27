@@ -1,0 +1,126 @@
+# ============================================================
+# arlo-admin 基础配置（开发环境默认值）
+# 所有配置项必须在此文件中定义，作为兜底默认值
+# ============================================================
+
+server:
+  port: 8090
+  mode: debug
+  readTimeout: 30s
+  writeTimeout: 30s
+  enableSwagger: true
+  # 开发可留空（允许 *）；生产务必配置具体前端域名
+  corsOrigins: []
+
+database:
+  driver: mysql
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: "12345678"
+  dbname: arlo_admin
+  charset: utf8mb4
+  maxIdleConns: 10
+  maxOpenConns: 100
+  connMaxLifetime: 3600s
+  logLevel: 4
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password: ""
+  db: 0
+  poolSize: 100
+
+jwt:
+  secret: "arlo-admin-dev-secret"
+  accessExpire: 2h
+  refreshExpire: 168h
+  issuer: "arlo-admin"
+
+casbin:
+  modelPath: "configs/rbac_model.conf"
+
+log:
+  level: debug
+  filePath: logs/app.log
+  maxSize: 100
+  maxBackups: 10
+  maxAge: 30
+  compress: true
+  format: console
+
+# ────────────────────────────────────────────
+# 文件存储配置
+# driver: local（本地存储，默认）/ oss（阿里云OSS，可扩展）
+# ────────────────────────────────────────────
+storage:
+  driver: local
+  maxSize: 52428800  # 50MB
+  # 允许上传的扩展名（不含点）；留空则使用内置默认白名单
+  # 禁止：exe/bat/sh/jar/class/java/php/jsp/asp/dll 等可执行或脚本
+  allowedExts:
+    - jpg
+    - jpeg
+    - png
+    - gif
+    - webp
+    - bmp
+    - ico
+    - svg
+    - mp3
+    - wav
+    - mp4
+    - webm
+    - mov
+    - avi
+    - pdf
+    - doc
+    - docx
+    - xls
+    - xlsx
+    - ppt
+    - pptx
+    - txt
+    - csv
+    - md
+    - zip
+    - rar
+    - 7z
+
+  # 本地存储
+  local:
+    path: uploads/
+
+  # 阿里云OSS（driver=oss 时生效）
+  # endpoint 填地域节点，如：oss-cn-hangzhou.aliyuncs.com
+  # 文件仍通过本站 /api/v1/file/{id}/download 代理访问，不直出 OSS 公网地址
+  oss:
+    endpoint: ""
+    accessKeyId: ""
+    accessKeySecret: ""
+    bucketName: ""
+
+# ────────────────────────────────────────────
+# 会员短信验证码
+# provider: mock（开发，只写日志）| aliyun | tencent
+# 同一时间只生效一个渠道
+# ────────────────────────────────────────────
+sms:
+  provider: mock
+  codeTTL: 5m
+  resendInterval: 60s
+  aliyun:
+    accessKeyId: ""
+    accessKeySecret: ""
+    signName: ""
+    templateCode: ""
+    templateParamKey: code   # 对应模板变量 ${code}
+    regionId: cn-hangzhou
+  tencent:
+    secretId: ""
+    secretKey: ""
+    appId: ""                # SmsSdkAppId
+    signName: ""
+    templateId: ""
+    region: ap-guangzhou

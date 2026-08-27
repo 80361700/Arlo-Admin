@@ -1,0 +1,116 @@
+/* 深色主题 — 含原侧栏导航配色 */
+.theme-dark {
+  /* 混合：仅 Logo 区深色（与侧栏同色）；顶栏其余保持浅色 */
+  &.layout-mix .nav-brand:not(.is-plain) {
+    --arlo-nav-brand-bg: #304156;
+    --arlo-nav-brand-title: #fff;
+    --arlo-nav-brand-line: rgba(255, 255, 255, 0.1);
+    --arlo-nav-brand-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  }
+
+  /* 纯顶栏：整条顶栏深色（不影响侧栏/混合） */
+  &.layout-topbar {
+    --arlo-nav-brand-title: #fff;
+    --arlo-topbar-nav-text: #bfcbd9;
+    --arlo-topbar-nav-active: #409eff;
+    --arlo-topbar-action: #bfcbd9;
+    --arlo-topbar-muted: #909399;
+
+    .layout-navbar {
+      background: #304156 !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+    }
+
+    .navbar-right {
+      .msg-bell {
+        color: #bfcbd9 !important;
+
+        &:hover {
+          color: #409eff !important;
+        }
+      }
+
+      .username {
+        color: #bfcbd9 !important;
+      }
+
+      .arrow {
+        color: #909399 !important;
+      }
+    }
+  }
+
+  .layout-sidebar {
+    background-color: #304156;
+  }
+
+  .sidebar-container {
+    background: #304156;
+    border-right: none;
+  }
+
+  .sidebar-logo {
+    height: 49px;
+    background: #304156;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+
+    .logo-title {
+      color: #fff;
+    }
+  }
+
+  .sidebar-menu {
+    border-right: none;
+    background-color: #304156 !important;
+    --el-menu-bg-color: #304156;
+    --el-menu-text-color: #bfcbd9;
+    --el-menu-active-color: #409eff;
+    --el-menu-hover-bg-color: #263445;
+
+    .el-menu-item,
+    .el-sub-menu__title {
+      color: #bfcbd9 !important;
+    }
+
+    .el-menu-item.is-active {
+      color: #409eff !important;
+      background-color: #263445 !important;
+    }
+
+    .el-sub-menu .el-menu {
+      background-color: #304156 !important;
+    }
+
+    .el-sub-menu .el-menu .el-menu-item,
+    .el-sub-menu .el-menu .el-sub-menu__title {
+      color: #bfcbd9 !important;
+    }
+
+    .el-sub-menu .el-menu .el-menu-item.is-active {
+      color: #409eff !important;
+      background-color: #263445 !important;
+    }
+
+    .el-menu-item:hover,
+    .el-menu-item.is-active:hover,
+    .el-sub-menu__title:hover {
+      background-color: #263445 !important;
+    }
+
+    .el-sub-menu .el-menu .el-menu-item:hover,
+    .el-sub-menu .el-menu .el-menu-item.is-active:hover {
+      background-color: #263445 !important;
+    }
+
+    .el-menu-item:focus:not(:hover):not(.is-active),
+    .el-sub-menu__title:focus:not(:hover) {
+      background-color: transparent !important;
+    }
+
+    .el-sub-menu .el-menu .el-menu-item:focus:not(:hover):not(.is-active) {
+      background-color: transparent !important;
+    }
+  }
+}
