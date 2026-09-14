@@ -6,7 +6,13 @@
         <el-color-picker v-model="modelValue.flow.processBgcolor" show-alpha :predefine="predefineColors" style="margin-left: 10px;" />
       </el-form-item>
       <el-form-item label="唯一标识key" prop="processKey">
-        <el-input v-model="modelValue.flow.processKey" maxlength="64" :disabled="!!modelValue.flow.processId" />
+        <el-input
+          v-model="modelValue.flow.processKey"
+          maxlength="64"
+          :disabled="!!modelValue.flow.processId"
+          :placeholder="modelValue.flow.processId ? '' : '可改；清空后保存时自动生成'"
+          clearable
+        />
       </el-form-item>
       <el-form-item label="名称" prop="processName">
         <el-input v-model="modelValue.flow.processName" maxlength="128" />
@@ -37,7 +43,7 @@
             流程管理员
             <el-tooltip
               placement="top"
-              content="指定后：创建人、所选人员、超管可改流程、启停；进行中实例的终止/转办请到「工作流 → 流程监控」。"
+              content="指定后：创建人、所选人员、超管可改流程、启停；进行中实例的终止/转办请到「流程管理 → 流程监控」。"
             >
               <el-icon class="label-tip-icon"><QuestionFilled /></el-icon>
             </el-tooltip>
@@ -106,7 +112,6 @@ const isBusiness = computed(
 const rules = computed<FormRules>(() => {
   const base: FormRules = {
     processIcon: [{ required: true, message: '请选择图标', trigger: 'change' }],
-    processKey: [{ required: true, message: '请输入唯一标识key', trigger: 'blur' }],
     processName: [{ required: true, message: '请输入名称', trigger: 'blur' }],
     categoryId: [{ required: true, message: '请选择分组', trigger: 'change' }],
   }

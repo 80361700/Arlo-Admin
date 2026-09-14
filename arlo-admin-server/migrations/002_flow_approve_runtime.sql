@@ -1,11 +1,181 @@
--- 审批运行时 / 菜单 / 定时 / 评论委托 / 抄送已读 / 演示单据
--- 合并原增量 002～020 的净效果（002～008 已合入 001_baseline，本文件只补基线之后部分）
--- 适用：已执行 001_baseline_v1.sql 的库，升级时导入本文件即可
+-- 审批运行时 / 定义侧 / 菜单 / 定时 / 评论委托 / 抄送已读 / 演示单据
+-- 合并原 002～020 及菜单更名（工作流→流程管理，列表页→流程定义）
+-- 适用：已有库升级时导入本文件即可（幂等）
 -- 执行：mysql --default-character-set=utf8mb4 -u root -p arlo_admin < 002_flow_approve_runtime.sql
--- 幂等：表 IF NOT EXISTS、菜单/任务 NOT EXISTS、字段按 information_schema 判断
--- 旧零散补丁已废弃删除，勿再查找 003～020 单文件
+-- 导入后请重启 API（或触发 Casbin ReloadPolicies），超管重新登录刷新菜单
 
 SET NAMES utf8mb4;
+
+-- ========== 定义侧表（旧基线可能没有；与 001 对齐） ==========
+CREATE TABLE IF NOT EXISTS `flow_category` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '分类名称',
+  `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_category_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程分类';
+
+CREATE TABLE IF NOT EXISTS `flow_process` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `category_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '分类ID',
+  `process_key` varchar(64) NOT NULL DEFAULT '' COMMENT '流程唯一标识',
+  `process_name` varchar(128) NOT NULL DEFAULT '' COMMENT '流程名称',
+  `process_icon` varchar(512) NOT NULL DEFAULT '' COMMENT '图标JSON {icon,color}',
+  `process_type` varchar(32) NOT NULL DEFAULT 'main' COMMENT '流程类型 main审批 business业务审批 child子流程',
+  `process_version` int(11) NOT NULL DEFAULT '1' COMMENT '版本号',
+  `process_state` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0禁用 1启用',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `model_content` longtext COMMENT '流程模型JSON',
+  `process_form` longtext COMMENT '表单设计JSON',
+  `process_setting` text COMMENT '扩展设置JSON',
+  `process_permission` text COMMENT '管理员权限JSON',
+  `created_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `updated_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flow_process_key` (`process_key`),
+  KEY `idx_flow_process_category` (`category_id`),
+  KEY `idx_flow_process_state` (`process_state`),
+  KEY `idx_flow_process_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程定义';
+
+CREATE TABLE IF NOT EXISTS `flow_process_history` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `process_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '流程定义ID',
+  `process_key` varchar(64) NOT NULL DEFAULT '' COMMENT '流程标识快照',
+  `process_name` varchar(128) NOT NULL DEFAULT '' COMMENT '流程名称快照',
+  `process_icon` varchar(512) NOT NULL DEFAULT '' COMMENT '图标JSON快照',
+  `process_type` varchar(32) NOT NULL DEFAULT 'main' COMMENT '流程类型快照',
+  `process_version` int(11) NOT NULL DEFAULT '1' COMMENT '版本号',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注快照',
+  `model_content` longtext COMMENT '流程模型JSON',
+  `process_form` longtext COMMENT '表单设计JSON',
+  `process_setting` text COMMENT '扩展设置JSON',
+  `process_permission` text COMMENT '管理员权限JSON',
+  `created_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `created_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flow_process_history_ver` (`process_id`,`process_version`),
+  KEY `idx_flow_process_history_process` (`process_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程定义历史版本';
+
+CREATE TABLE IF NOT EXISTS `flow_form_category` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '分类名称',
+  `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_form_category_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='表单分类';
+
+CREATE TABLE IF NOT EXISTS `flow_form` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `category_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '分类ID',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '模板名称',
+  `code` varchar(64) NOT NULL DEFAULT '' COMMENT '模板编码',
+  `form_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1设计表单 2系统表单(预留)',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '0禁用 1正常',
+  `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `form_schema` longtext COMMENT 'epic-designer JSON',
+  `pc_url` varchar(255) NOT NULL DEFAULT '' COMMENT '系统表单PC地址(预留)',
+  `app_url` varchar(255) NOT NULL DEFAULT '' COMMENT '系统表单APP地址(预留)',
+  `created_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `updated_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flow_form_code` (`code`),
+  KEY `idx_flow_form_category` (`category_id`),
+  KEY `idx_flow_form_status` (`status`),
+  KEY `idx_flow_form_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='表单模板';
+
+INSERT INTO `flow_category` (`id`, `name`, `sort`, `remark`, `created_at`, `updated_at`)
+SELECT 1, '默认分类', 0, '系统预置', NOW(3), NOW(3)
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `flow_category` WHERE `id` = 1);
+
+INSERT INTO `flow_form_category` (`id`, `name`, `sort`, `remark`, `created_at`, `updated_at`)
+SELECT 1, '默认分类', 0, '系统预置', NOW(3), NOW(3)
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `flow_form_category` WHERE `id` = 1);
+
+-- ========== 定义侧菜单（旧基线常缺 200～215；002 原先未补导致菜单不完整） ==========
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 200, 0, '流程管理', 1, '/flow', '', 'Share', 20, '', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 200);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 201, 200, '流程定义', 2, '/flow/process', 'flow/process/index', 'SetUp', 1, 'flow:process:list', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 201);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 202, 201, '流程查询', 3, '', '', '', 1, 'flow:process:list', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 202);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 203, 201, '流程新增', 3, '', '', '', 2, 'flow:process:add', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 203);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 204, 201, '流程编辑', 3, '', '', '', 3, 'flow:process:edit', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 204);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 205, 201, '流程删除', 3, '', '', '', 4, 'flow:process:delete', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 205);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 206, 201, '分类管理', 3, '', '', '', 5, 'flow:category:manage', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 206);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 210, 200, '表单管理', 2, '/flow/form', 'flow/form/index', 'Document', 2, 'flow:form:list', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 210);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 211, 210, '表单查询', 3, '', '', '', 1, 'flow:form:list', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 211);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 212, 210, '表单新增', 3, '', '', '', 2, 'flow:form:add', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 212);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 213, 210, '表单编辑', 3, '', '', '', 3, 'flow:form:edit', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 213);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 214, 210, '表单删除', 3, '', '', '', 4, 'flow:form:delete', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 214);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
+SELECT 215, 210, '表单分类', 3, '', '', '', 5, 'flow:formCategory:manage', 1, 1, 1, NOW(3), NOW(3), NULL
+FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 215);
+
+-- 若曾软删，恢复显示
+UPDATE `sys_menu`
+SET `deleted_at` = NULL, `status` = 1, `visible` = 1, `updated_at` = NOW(3)
+WHERE `id` IN (200, 201, 202, 203, 204, 205, 206, 210, 211, 212, 213, 214, 215)
+  AND `deleted_at` IS NOT NULL;
+
+UPDATE `sys_menu`
+SET `parent_id` = 0, `name` = '流程管理', `type` = 1, `path` = '/flow', `component` = '', `icon` = 'Share', `sort` = 20, `permission` = '',
+    `status` = 1, `visible` = 1, `deleted_at` = NULL, `updated_at` = NOW(3)
+WHERE `id` = 200;
+
+UPDATE `sys_menu`
+SET `parent_id` = 200, `name` = '表单管理', `type` = 2, `path` = '/flow/form', `component` = 'flow/form/index', `icon` = 'Document', `sort` = 2, `permission` = 'flow:form:list', `updated_at` = NOW(3)
+WHERE `id` = 210;
 
 -- ========== 运行时表 ==========
 CREATE TABLE IF NOT EXISTS `flow_instance` (
@@ -304,7 +474,7 @@ INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, 
 SELECT 234, 229, '已审查询', 3, '', '', '', 1, 'flow:approve:approved', 1, 1, 1, NOW(3), NOW(3), NULL
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 234);
 
--- 流程监控：挂在「工作流」下（与流程管理同级）
+-- 流程监控：挂在「流程管理」目录下（与流程定义同级）
 INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`)
 SELECT 235, 200, '流程监控', 2, '/flow/approve/monitor', 'flow/approve/monitor/index', 'Monitor', 3, 'flow:approve:monitor', 1, 1, 1, NOW(3), NOW(3), NULL
 FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM `sys_menu` WHERE `id` = 235);
@@ -353,15 +523,19 @@ UPDATE `sys_menu`
 SET `deleted_at` = NOW(3), `updated_at` = NOW(3)
 WHERE `id` = 239 AND `deleted_at` IS NULL;
 
--- 流程管理保持列表页（防止曾被 015 改成目录）
+-- 流程定义列表页（含「工作流/流程管理」更名后的最终态）
 UPDATE `sys_menu`
 SET `type` = 2,
+    `name` = '流程定义',
     `path` = '/flow/process',
     `component` = 'flow/process/index',
     `permission` = 'flow:process:list',
     `icon` = 'SetUp',
     `sort` = 1,
     `parent_id` = 200,
+    `status` = 1,
+    `visible` = 1,
+    `deleted_at` = NULL,
     `updated_at` = NOW(3)
 WHERE `id` = 201;
 
@@ -369,9 +543,28 @@ UPDATE `sys_menu`
 SET `parent_id` = 201, `updated_at` = NOW(3)
 WHERE `id` IN (202, 203, 204, 205, 206);
 
+-- 若曾软删审批相关菜单，一并恢复（详情 225 保持隐藏 visible=0）
+UPDATE `sys_menu`
+SET `deleted_at` = NULL, `status` = 1, `updated_at` = NOW(3)
+WHERE `id` IN (
+  220, 221, 222, 223, 224, 225, 226, 227, 228, 229,
+  230, 231, 232, 233, 234, 235, 236, 237, 238,
+  240, 241, 242, 243, 244
+) AND `deleted_at` IS NOT NULL;
+
+UPDATE `sys_menu`
+SET `visible` = 1, `updated_at` = NOW(3)
+WHERE `id` IN (
+  220, 221, 222, 223, 224, 226, 227, 228, 229,
+  230, 231, 232, 233, 234, 235, 236, 237, 238,
+  240, 241, 242, 243, 244
+);
+
 INSERT INTO `sys_role_menu` (`role_id`, `menu_id`)
 SELECT 1, m.id FROM `sys_menu` m
 WHERE m.id IN (
+  200, 201, 202, 203, 204, 205, 206,
+  210, 211, 212, 213, 214, 215,
   220, 221, 222, 223, 224, 225, 226, 227, 228, 229,
   230, 231, 232, 233, 234, 235, 236, 237, 238,
   240, 241, 242, 243, 244

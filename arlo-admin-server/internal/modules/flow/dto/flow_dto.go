@@ -77,7 +77,7 @@ type ProcessDetail struct {
 type SaveProcessRequest struct {
 	ProcessID             *uint64                  `json:"processId"`
 	CategoryID            uint64                   `json:"categoryId" binding:"required"`
-	ProcessKey            string                   `json:"processKey" binding:"required,max=64"`
+	ProcessKey            string                   `json:"processKey" binding:"omitempty,max=64"`
 	ProcessName           string                   `json:"processName" binding:"required,max=128"`
 	ProcessIcon           string                   `json:"processIcon"` // 可为纯图标名，或 JSON
 	ProcessBgcolor        string                   `json:"processBgcolor"`

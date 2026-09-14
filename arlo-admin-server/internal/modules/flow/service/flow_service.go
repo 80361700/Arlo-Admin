@@ -169,6 +169,10 @@ func (s *FlowService) SaveProcess(ctx context.Context, req *dto.SaveProcessReque
 		if err := s.ensureProcessManager(ctx, userID, p); err != nil {
 			return nil, err
 		}
+		// 编辑时未传 key：沿用原标识（前端禁用修改）
+		if key == "" {
+			key = p.ProcessKey
+		}
 		if p.ProcessKey != key {
 			if other, e := s.repo.GetProcessByKey(ctx, key); e == nil && other.ID != p.ID {
 				return nil, ErrProcessKeyExists
@@ -200,6 +204,15 @@ func (s *FlowService) SaveProcess(ctx context.Context, req *dto.SaveProcessReque
 			return nil, err
 		}
 		return toDetail(p), nil
+	}
+
+	if key == "" {
+		var err error
+		key, err = s.allocProcessKey(ctx)
+		if err != nil {
+			return nil, err
+		}
+		modelStr = patchModelContentKey(modelStr, key)
 	}
 
 	if _, err := s.repo.GetProcessByKey(ctx, key); err == nil {
@@ -288,6 +301,41 @@ func (s *FlowService) ListProcessOptions(ctx context.Context, excludeID uint64) 
 		})
 	}
 	return out, nil
+}
+
+// allocProcessKey 生成未占用的流程标识（flw + 毫秒时间戳 + 4 位随机数字）
+func (s *FlowService) allocProcessKey(ctx context.Context) (string, error) {
+	for i := 0; i < 8; i++ {
+		key := fmt.Sprintf("flw%d%04d", time.Now().UnixMilli(), time.Now().Nanosecond()%10000)
+		if len(key) > 64 {
+			key = key[:64]
+		}
+		_, err := s.repo.GetProcessByKey(ctx, key)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return key, nil
+		}
+		if err != nil {
+			return "", err
+		}
+		time.Sleep(time.Millisecond)
+	}
+	return "", errors.New("生成流程标识失败")
+}
+
+func patchModelContentKey(modelStr, key string) string {
+	if modelStr == "" || modelStr == "null" || key == "" {
+		return modelStr
+	}
+	var m map[string]interface{}
+	if err := json.Unmarshal([]byte(modelStr), &m); err != nil {
+		return modelStr
+	}
+	m["key"] = key
+	b, err := json.Marshal(m)
+	if err != nil {
+		return modelStr
+	}
+	return string(b)
 }
 
 func (s *FlowService) CloneProcess(ctx context.Context, id uint64, userID uint64) (*dto.ProcessDetail, error) {

@@ -84,6 +84,7 @@ import formDesigner from './components/formDesigner.vue'
 import processDesigner from './components/processDesigner.vue'
 import setting from './components/setting.vue'
 import { createEmptyFormSchema, normalizeProcessForm } from './components/formSchema'
+import { randomLenNum } from '@/utils/random'
 import {
   normalizeProcessType,
   processTypeLabel,
@@ -122,7 +123,21 @@ const dialogTitle = computed(() => {
   return typeLabel
 })
 
+function genProcessKey() {
+  // flw + 毫秒时间戳 + 4 位随机数字，降低碰撞
+  return `flw${Date.now()}${randomLenNum(4)}`
+}
+
+function ensureProcessKey() {
+  const flow = flowForm.value?.flow
+  if (!flow || flow.processId) return
+  if (!String(flow.processKey || '').trim()) {
+    flow.processKey = genProcessKey()
+  }
+}
+
 function initForm(type: ProcessType = 'main') {
+  const processKey = genProcessKey()
   return {
     flow: {
       processId: undefined as number | undefined,
@@ -130,7 +145,7 @@ function initForm(type: ProcessType = 'main') {
       processIcon: '',
       processBgcolor: 'rgba(30, 144, 255, 1)',
       processType: type,
-      processKey: '',
+      processKey,
       processName: '',
       remark: '',
       processPermissionList: [] as any[],
@@ -139,7 +154,7 @@ function initForm(type: ProcessType = 'main') {
       bindFormCode: '',
       processForm: createEmptyFormSchema(),
       modelContent: {
-        key: '',
+        key: processKey,
         name: '',
         nodeConfig: {
           nodeName: '发起人',
@@ -291,6 +306,9 @@ async function dialogSubmit() {
     return
   }
 
+  // 新建：未填 key 时自动生成（后端仍会兜底去重）
+  ensureProcessKey()
+
   flowForm.value.flow.modelContent.key = flowForm.value.flow.processKey
   flowForm.value.flow.modelContent.name = flowForm.value.flow.processName
   syncProcessForm()
@@ -312,6 +330,7 @@ async function dialogSubmit() {
 }
 
 function handleStep(type: string, index = 0) {
+  if (currentStepKey.value === 'basic') ensureProcessKey()
   if (currentStepKey.value === 'form') syncProcessForm()
 
   if (type === 'up') {

@@ -5,7 +5,7 @@
 -- 全新安装：
 --   mysql --default-character-set=utf8mb4 -u用户 -p < migrations/001_baseline_v1.sql
 --
--- 后续变更：新增 003_*.sql 起增量补丁（002 为审批运行时升级包）；勿改本文件既有语义。
+-- 后续变更：新增 003_*.sql 起增量补丁（002 为审批/流程菜单升级包）；勿改本文件既有语义。
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS `arlo_admin`
@@ -452,8 +452,8 @@ INSERT INTO `flow_category` (`id`, `name`, `sort`, `remark`, `created_at`, `upda
 (1,'默认分类',0,'系统预置',NOW(3),NOW(3));
 
 INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(200,0,'工作流',1,'/flow','','Share',20,'',1,1,1,NOW(3),NOW(3),NULL),
-(201,200,'流程管理',2,'/flow/process','flow/process/index','SetUp',1,'flow:process:list',1,1,1,NOW(3),NOW(3),NULL),
+(200,0,'流程管理',1,'/flow','','Share',20,'',1,1,1,NOW(3),NOW(3),NULL),
+(201,200,'流程定义',2,'/flow/process','flow/process/index','SetUp',1,'flow:process:list',1,1,1,NOW(3),NOW(3),NULL),
 (202,201,'流程查询',3,'','','',1,'flow:process:list',1,1,1,NOW(3),NOW(3),NULL),
 (203,201,'流程新增',3,'','','',2,'flow:process:add',1,1,1,NOW(3),NOW(3),NULL),
 (204,201,'流程编辑',3,'','','',3,'flow:process:edit',1,1,1,NOW(3),NOW(3),NULL),

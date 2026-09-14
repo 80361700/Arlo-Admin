@@ -258,7 +258,7 @@ CORS → RequestID → RequestLogger → Recovery
 | `components/designer-extensions/` | 表单扩展控件（用户/部门/角色/字典/上传/富文本等） |
 | `api/modules/flow.ts` | 定义与审批接口 |
 
-菜单：一级「工作流」（定义 / 表单 / 监控）、「流程审批」（各办理列表）；权限码 `flow:*`。  
+菜单：一级「流程管理」（流程定义 / 表单 / 监控）、「流程审批」（各办理列表）；权限码 `flow:*`。
 业务挂审批：仿 `modules/demo`，单据存 `process_id`，发起走 `/flow/approve/launch`；详情深链为隐藏菜单 `225`。  
 表结构：已合入 `001_baseline`；从旧基线升级执行 `002_flow_approve_runtime.sql`（见 `migrations/README.md`）。
 
