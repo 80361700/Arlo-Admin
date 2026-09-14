@@ -13,14 +13,32 @@
 
 ## 界面预览
 
-<!-- 截图放这里，例如：
-![流程设计](docs/screenshots/process-designer.png)
-![表单设计](docs/screenshots/form-designer.png)
-![发起审批](docs/screenshots/approve-launch.png)
-![待审批](docs/screenshots/approve-pending.png)
-![流程监控](docs/screenshots/approve-monitor.png)
-![系统管理](docs/screenshots/system.png)
--->
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/pic/process-list.png" alt="流程管理"/><br/><sub>流程管理</sub></td>
+    <td width="50%" align="center"><img src="docs/pic/form-designer.png" alt="表单设计"/><br/><sub>表单设计</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/pic/process-designer.png" alt="流程设计"/><br/><sub>流程设计</sub></td>
+    <td width="50%" align="center"><img src="docs/pic/process-node-config.png" alt="节点配置"/><br/><sub>节点配置</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/pic/approve-launch.png" alt="发起审批"/><br/><sub>发起审批</sub></td>
+    <td width="50%" align="center"><img src="docs/pic/approve-pending.png" alt="待审批"/><br/><sub>待审批</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/pic/approve-flowchart.png" alt="流程图"/><br/><sub>流程图</sub></td>
+    <td width="50%" align="center"><img src="docs/pic/approve-approved.png" alt="已审批"/><br/><sub>已审批 / 流转记录</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/pic/subprocess-detail.png" alt="子流程"/><br/><sub>子流程详情</sub></td>
+    <td width="50%" align="center"><img src="docs/pic/business-form.png" alt="业务挂流程"/><br/><sub>业务单据挂流程</sub></td>
+  </tr>
+  <tr>
+    <td width="50%" align="center"><img src="docs/pic/business-timeline.png" alt="业务流转"/><br/><sub>业务单据 · 流转记录</sub></td>
+    <td width="50%"></td>
+  </tr>
+</table>
 
 ## 功能介绍
 
