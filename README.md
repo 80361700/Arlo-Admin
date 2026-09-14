@@ -11,23 +11,87 @@
 - 地址：[http://101.200.43.49/](http://101.200.43.49/)
 - 账号：`admin` / `admin123`
 
+## 界面预览
 
-## 工作流审批
+<!-- 截图放这里，例如：
+![流程设计](docs/screenshots/process-designer.png)
+![表单设计](docs/screenshots/form-designer.png)
+![发起审批](docs/screenshots/approve-launch.png)
+![待审批](docs/screenshots/approve-pending.png)
+![流程监控](docs/screenshots/approve-monitor.png)
+![系统管理](docs/screenshots/system.png)
+-->
+
+## 功能介绍
+
+### 一、审批流引擎
+
+菜单分两块：**工作流**（定义侧）与 **流程审批**（办理侧）。引擎在后端 `modules/flow/engine`，与 HTTP 解耦；表单用 epic-designer，并扩展了用户 / 部门 / 角色 / 字典 / 上传 / 富文本等控件。
+
+#### 1. 流程与表单设计
 
 | 能力 | 说明 |
 |------|------|
-| 流程 / 表单设计 | 分类；模型与 Schema 落库；定义历史版本与检出 |
-| 节点 | 审批（依次 / 会签 / 或签）、抄送、条件分支、延时、触发、子流程 |
-| 办理人 | 指定人 / 角色 / 部门负责人 / 发起人自选；加签、减签、转办、委托 |
-| 办理动作 | 同意 / 拒绝 / 退回、批量同意与拒绝、催办、撤销、草稿、改单重提、评论、运行时抄送 |
-| 列表 | 发起、待办、已办、我的申请、我收到的、认领、流程监控（含终止 / 管理员转办） |
-| 运维与扩展 | `flow_tick` 延时推进与超时/提醒；打印；业务单绑 `process_id`（演示：采购单） |
+| 流程管理 | 分类、启用/禁用、克隆、校验；模型 JSON 落库 |
+| 表单管理 | 分类、模板 Schema 落库，可被流程引用 |
+| 历史版本 | 定义变更留历史，支持检出回滚 |
+| 节点类型 | 审批、抄送、条件分支、延时、触发、子流程等 |
+| 审批模式 | 依次、会签、或签 |
+| 办理人策略 | 指定人、角色、部门负责人、发起人自选等 |
+
+#### 2. 发起与办理
+
+| 场景 | 说明 |
+|------|------|
+| 发起审批 | 按已发布流程填单提交；支持暂存草稿、激活、改单重提 |
+| 待审批 | 当前待办；同意 / 拒绝 / 退回；批量同意、批量拒绝 |
+| 已审批 | 本人已办记录 |
+| 我的申请 | 发起人侧：催办、撤销、草稿管理等 |
+| 我收到的 | 抄送列表，支持已读 |
+| 认领任务 | 角色池待认领任务 |
+| 运行时协作 | 加签、减签、转办、委托代批、评论、补抄送 |
+| 打印 | 审批单静态表格打印（含图片字段） |
+
+列表支持按发起人、流程状态、时间范围等筛选。
+
+#### 3. 监控与运维
+
+| 能力 | 说明 |
+|------|------|
+| 流程监控 | 可管理范围内的实例；默认看审批中，可按状态/时间筛选 |
+| 管理员动作 | 终止流程、管理员转办 |
+| 定时推进 | 内置 `flow_tick`：延时节点到期、超时自动通过/拒绝、审批提醒站内信 |
+| 流转可视 | 详情内表单、流转记录、流程图节点状态 |
+
+#### 4. 业务扩展
+
+业务表保存 `process_id` / `process_key`，走统一发起接口即可挂审批。仓库内 **演示采购单**（`modules/demo` / `views/business`）为完整示例。
 
 | 端 | 路径 |
 |----|------|
-| 后端 | `arlo-admin-server/internal/modules/flow/`（`engine/` 推进逻辑） |
-| 前端 | `arlo-admin-web/src/views/flow/`、`components/flowProcess/`、`components/designer-extensions/` |
-| 迁移 | 全新 `001_baseline`；已有库补跑 `002_flow_approve_runtime.sql` |
+| 后端 | `arlo-admin-server/internal/modules/flow/` |
+| 前端 | `arlo-admin-web/src/views/flow/`、`components/flowProcess/`、`designer-extensions/` |
+| 库表 | 全新安装 `001_baseline`；旧基线升级 `002_flow_approve_runtime.sql` |
+
+---
+
+### 二、通用后台管理底座
+
+| 模块 | 能力 |
+|------|------|
+| 认证与权限 | JWT 登录/刷新；Casbin 菜单与按钮权限；角色数据权限（全部 / 本部门 / 自定义等） |
+| 组织人事 | 用户（改密、解锁、Excel 导入导出）、角色、部门树、岗位、字典 |
+| 菜单路由 | 动态菜单与前端动态路由；`v-permission` 控制按钮 |
+| 文件 | 上传（MD5 去重）、列表删除、鉴权下载；`accessKey` 预览 |
+| 消息 | 站内信（指定/广播、已读、未读数，WebSocket 推送）；通知公告发布/撤回 |
+| 日志 | 登录日志、操作日志，可导出 |
+| 系统配置 | 键值配置（含 Logo、验证码、密码策略等） |
+| 监控 | 在线用户与强制下线、服务监控 |
+| 定时任务 | 进程内调度；管理端启停/手动执行（如日志清理、流程定时） |
+| 界面 | 多主题、侧栏 / 混合 / 顶栏布局；ProTable 等通用组件 |
+| 会员 | 管理端列表等；客户端登录/微信等仍为预留 |
+
+---
 
 ## 仓库结构
 
@@ -89,7 +153,7 @@ make docker-up
 
 | 文档 | 内容 |
 |------|------|
-| [HANDOFF.md](./HANDOFF.md) | 分层、权限、**工作流模块**、坑点、扩展方式 |
+| [HANDOFF.md](./HANDOFF.md) | 分层、权限、工作流模块、坑点、扩展方式 |
 | [deployments/README.md](./deployments/README.md) | 生产部署 |
 | [arlo-admin-server/README.md](./arlo-admin-server/README.md) | 后端启动与迁移 |
 | [arlo-admin-web/README.md](./arlo-admin-web/README.md) | 前端启动与约定 |

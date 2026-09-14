@@ -236,7 +236,7 @@ CORS → RequestID → RequestLogger → Recovery
 
 ### 5.1 工作流
 
-能力表见根 [README.md](./README.md)#工作流审批。此处只记代码落点与扩展约定。
+能力表见根 [README.md](./README.md)#功能介绍。此处只记代码落点与扩展约定。
 
 **后端** `internal/modules/flow/`：
 
