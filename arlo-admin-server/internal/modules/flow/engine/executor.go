@@ -833,10 +833,23 @@ func (e *Engine) enterNode(ctx context.Context, st *walkState, node *Node) error
 	if node == nil {
 		return e.finishInstance(ctx, st.inst, model.InstComplete, st.fromKey, "")
 	}
+	prevKey, prevName := st.inst.CurrentNodeKey, st.inst.CurrentNodeName
 	st.inst.CurrentNodeKey = node.NodeKey
 	st.inst.CurrentNodeName = node.NodeName
 	_ = e.Repo.UpdateInstance(ctx, st.inst)
 
+	err := e.dispatchEnterNode(ctx, st, node)
+	if err != nil {
+		// 进入失败时回滚当前节点，避免留下「流程图执行中、却无待办」的空壳
+		st.inst.CurrentNodeKey = prevKey
+		st.inst.CurrentNodeName = prevName
+		_ = e.Repo.UpdateInstance(ctx, st.inst)
+		return err
+	}
+	return nil
+}
+
+func (e *Engine) dispatchEnterNode(ctx context.Context, st *walkState, node *Node) error {
 	switch node.Type {
 	case NodeEnd:
 		return e.finishInstance(ctx, st.inst, model.InstComplete, node.NodeKey, node.NodeName)

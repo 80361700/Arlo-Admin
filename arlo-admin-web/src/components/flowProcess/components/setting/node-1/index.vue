@@ -25,7 +25,7 @@
             <el-radio :value="1" style="width: 25%;">指定成员</el-radio>
             <el-radio :value="2" style="width: 25%;">主管</el-radio>
             <el-radio :value="3" style="width: 25%;">角色</el-radio>
-            <el-radio :value="4" style="width: 25%;">发起人自选</el-radio>
+            <el-radio v-if="!isChildProcess" :value="4" style="width: 25%;">发起人自选</el-radio>
             <el-radio :value="5" style="width: 25%;">发起人自己</el-radio>
             <el-radio :value="6" style="width: 25%;">连续多级主管</el-radio>
           </el-radio-group>
@@ -350,6 +350,9 @@ const props = defineProps<{
   flow: any,
 }>()
 
+/** 子流程只能被自动启动，无法在发起页选人 */
+const isChildProcess = computed(() => String(props.flow?.processType || '') === 'child')
+
 /** 可指定驳回的目标：发起人 + 其他审批节点（不含当前） */
 const rejectableNodes = computed(() => {
   const root = props.flow?.modelContent?.nodeConfig
@@ -436,6 +439,13 @@ watch(() => props.data.node.selectMode, (n , o) => {
 
 
 props.data.node = Object.assign(JSON.parse(JSON.stringify(config.nodes.find((item: any) => item.type == props.data.node.type)?.config)), props.data.node)
+if (isChildProcess.value && Number(props.data.node.setType) === 4) {
+  props.data.node.setType = 1
+  if (props.data.node.nodeCandidate) {
+    props.data.node.nodeCandidate.type = 0
+    props.data.node.nodeCandidate.assignees = []
+  }
+}
 if (!props.data.node.extendConfig || typeof props.data.node.extendConfig !== 'object') {
   props.data.node.extendConfig = {}
 }

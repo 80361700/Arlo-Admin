@@ -18,7 +18,11 @@
       </el-form-item>
 
       <el-form-item label="抄送配置">
-        <el-checkbox v-model="props.data.node.allowSelection" label="允许发起人自选抄送人"></el-checkbox>
+        <el-checkbox
+          v-if="String(props.flow?.processType || '') !== 'child'"
+          v-model="props.data.node.allowSelection"
+          label="允许发起人自选抄送人"
+        ></el-checkbox>
         <el-checkbox v-model="props.data.node.remind" label="抄送提醒"></el-checkbox>
       </el-form-item>
       
@@ -59,6 +63,9 @@ defineExpose({
 
 
 props.data.node = Object.assign(JSON.parse(JSON.stringify(config.nodes.find((item: any) => item.type == props.data.node.type)?.config)), props.data.node)
+if (String(props.flow?.processType || '') === 'child') {
+  props.data.node.allowSelection = false
+}
 console.log("node-setting", props.data.node)
 
 

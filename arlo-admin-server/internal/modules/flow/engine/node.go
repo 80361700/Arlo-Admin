@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // 设计器节点类型
@@ -225,6 +226,29 @@ func CollectApprovalNodes(root *Node) []*Node {
 	}
 	walk(root)
 	return out
+}
+
+// SelfSelectApprovalNodeNames 返回模型中「发起人自选」审批节点名称（用于子流程自动启动校验）
+func SelfSelectApprovalNodeNames(modelJSON string) []string {
+	mc, err := ParseModel(modelJSON)
+	if err != nil || mc == nil || mc.NodeConfig == nil {
+		return nil
+	}
+	var names []string
+	for _, n := range CollectApprovalNodes(mc.NodeConfig) {
+		if n == nil || n.SetType != 4 {
+			continue
+		}
+		name := strings.TrimSpace(n.NodeName)
+		if name == "" {
+			name = n.NodeKey
+		}
+		if name == "" {
+			name = "未命名"
+		}
+		names = append(names, name)
+	}
+	return names
 }
 
 func AssigneeIDUint(a Assignee) uint64 {

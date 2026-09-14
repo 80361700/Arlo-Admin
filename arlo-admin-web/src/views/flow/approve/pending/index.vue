@@ -432,7 +432,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onActivated, onMounted, ref, watch } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Loading, Printer, Refresh, Search } from '@element-plus/icons-vue'
 import { type FieldStates, type PageSchema } from 'epic-designer'
@@ -1214,7 +1214,16 @@ watch(filteredList, (rows) => {
   }
 })
 
+let skipKeepAliveActivate = true
 onMounted(() => {
+  loadActiveDelegate()
+  loadList(false)
+})
+onActivated(() => {
+  if (skipKeepAliveActivate) {
+    skipKeepAliveActivate = false
+    return
+  }
   loadActiveDelegate()
   loadList(false)
 })

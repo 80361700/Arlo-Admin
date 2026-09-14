@@ -32,10 +32,14 @@ func ResolveAssignees(node *Node, initiatorID uint64, selected []UserRef, org Or
 		setType = 1
 	}
 	var users []UserRef
+	var miss []uint64
 	var err error
 	switch setType {
 	case 1: // 指定成员
-		users = fromAssigneeList(node.NodeAssigneeList, org)
+		users, miss = fromAssigneeListDetailed(node.NodeAssigneeList, org)
+		if len(users) == 0 {
+			return nil, emptyDesignatedErr(node, miss)
+		}
 	case 2: // 主管
 		users, err = resolveManagers(initiatorID, node.ExamineLevel, false, 0, org)
 	case 3: // 角色（按节点配置解析）
@@ -55,7 +59,11 @@ func ResolveAssignees(node *Node, initiatorID uint64, selected []UserRef, org Or
 				users = selected
 			}
 		} else {
-			users = fromAssigneeList(node.NodeAssigneeList, org)
+			// 无自选结果时不把候选人名单当成审批人（设计器 nodeCandidate 仅是可选范围）
+			users, _ = fromAssigneeListDetailed(node.NodeAssigneeList, org)
+			if len(users) == 0 {
+				return nil, fmt.Errorf("节点[%s]为发起人自选，但未传入所选审批人（子流程自动启动时无法自选，请改为指定成员/角色/主管/发起人自己）", node.NodeName)
+			}
 		}
 	case 5: // 发起人自己
 		name, _, ok := org.GetUser(initiatorID)
@@ -70,7 +78,10 @@ func ResolveAssignees(node *Node, initiatorID uint64, selected []UserRef, org Or
 		}
 		users, err = resolveManagers(initiatorID, 0, true, endLevel, org)
 	default:
-		users = fromAssigneeList(node.NodeAssigneeList, org)
+		users, miss = fromAssigneeListDetailed(node.NodeAssigneeList, org)
+		if len(users) == 0 {
+			return nil, emptyDesignatedErr(node, miss)
+		}
 	}
 	if err != nil {
 		return nil, err
@@ -84,6 +95,9 @@ func ResolveAssignees(node *Node, initiatorID uint64, selected []UserRef, org Or
 		// 配置了人但因「与发起人同一人自动跳过」清空 → 允许空（引擎自动通过）
 		if len(beforeSelf) > 0 && node.ApproveSelf == 1 {
 			return nil, nil
+		}
+		if len(beforeSelf) > 0 && (node.ApproveSelf == 2 || node.ApproveSelf == 3) {
+			return nil, fmt.Errorf("节点[%s]审批人与发起人相同，转交上级/部门负责人失败（未找到可转交的主管）", node.NodeName)
 		}
 		return nil, fmt.Errorf("节点[%s]未解析到审批人", node.NodeName)
 	}
@@ -151,7 +165,12 @@ func ResolveCC(node *Node, selected []UserRef, org OrgStore) []UserRef {
 }
 
 func fromAssigneeList(list []Assignee, org OrgStore) []UserRef {
-	var out []UserRef
+	users, _ := fromAssigneeListDetailed(list, org)
+	return users
+}
+
+// fromAssigneeListDetailed 解析指定成员；missing 为配置了 id 但用户表查不到的项
+func fromAssigneeListDetailed(list []Assignee, org OrgStore) (users []UserRef, missing []uint64) {
 	for _, a := range list {
 		id := AssigneeIDUint(a)
 		if id == 0 {
@@ -160,11 +179,30 @@ func fromAssigneeList(list []Assignee, org OrgStore) []UserRef {
 		name, _, ok := org.GetUser(id)
 		if !ok {
 			// 用户不存在/已删：不挂幽灵审批人，避免待办无人可办
+			missing = append(missing, id)
 			continue
 		}
-		out = append(out, UserRef{ID: id, Name: name})
+		users = append(users, UserRef{ID: id, Name: name})
 	}
-	return out
+	return users, missing
+}
+
+func emptyDesignatedErr(node *Node, missing []uint64) error {
+	name := "未命名"
+	if node != nil && node.NodeName != "" {
+		name = node.NodeName
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("节点[%s]指定成员用户不存在或已删除（id=%v）", name, missing)
+	}
+	n := 0
+	if node != nil {
+		n = len(node.NodeAssigneeList)
+	}
+	if n == 0 {
+		return fmt.Errorf("节点[%s]为指定成员，但未配置人员", name)
+	}
+	return fmt.Errorf("节点[%s]指定成员无法解析（人员 id 无效）", name)
 }
 
 func fromRoles(list []Assignee, org OrgStore) ([]UserRef, error) {

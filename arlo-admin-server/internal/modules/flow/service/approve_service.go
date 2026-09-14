@@ -656,27 +656,30 @@ func (s *FlowService) bootstrapSubProcesses(ctx context.Context, parentID uint64
 			ChildInstanceID uint64 `json:"childInstanceId"`
 		}
 		_ = json.Unmarshal([]byte(t.Payload), &payload)
-		// 幂等：已绑定子实例则跳过
+
+		// 已绑定：空壳（审批中却无活动任务）则清掉重建；正常子实例则跳过
 		if payload.ChildInstanceID > 0 {
-			continue
+			if bound, e := s.repo.GetInstance(ctx, payload.ChildInstanceID); e == nil && bound != nil && s.isHollowSubInstance(ctx, bound) {
+				_ = s.repo.DeleteInstanceHard(ctx, bound.ID)
+				payload.ChildInstanceID = 0
+				s.clearTaskChildInstanceID(ctx, &t)
+			} else {
+				continue
+			}
 		}
 		// 幂等：该节点仍有活动子实例
-		if n, _ := s.repo.CountActiveChildren(ctx, parentID, t.NodeKey); n > 0 {
-			continue
+		if latest, e := s.repo.GetLatestChildByParentNode(ctx, parentID, t.NodeKey); e == nil && latest != nil && latest.InstanceState == model.InstActive {
+			if s.isHollowSubInstance(ctx, latest) {
+				_ = s.repo.DeleteInstanceHard(ctx, latest.ID)
+			} else {
+				s.bindTaskChildInstanceID(ctx, &t, payload.CallProcess, latest.ID)
+				continue
+			}
 		}
 		// 幂等：本 TaskSub 生命周期内已创建过子实例（含已结束）
 		if latest, e := s.repo.GetLatestChildByParentNode(ctx, parentID, t.NodeKey); e == nil && latest != nil {
 			if !latest.CreatedAt.Before(t.CreatedAt.Add(-time.Second)) {
-				var raw map[string]interface{}
-				_ = json.Unmarshal([]byte(t.Payload), &raw)
-				if raw == nil {
-					raw = map[string]interface{}{}
-				}
-				raw["childInstanceId"] = latest.ID
-				b, _ := json.Marshal(raw)
-				t.Payload = string(b)
-				t.UpdatedAt = time.Now()
-				_ = s.repo.UpdateTask(ctx, &t)
+				s.bindTaskChildInstanceID(ctx, &t, payload.CallProcess, latest.ID)
 				continue
 			}
 		}
@@ -758,27 +761,70 @@ func (s *FlowService) bootstrapSubProcesses(ctx context.Context, parentID uint64
 			child.CreateDeptID = parent.CreateDeptID
 		}
 		engine.SnapshotProcessSetting(child, childProc.ProcessSetting)
+		if names := engine.SelfSelectApprovalNodeNames(childProc.ModelContent); len(names) > 0 {
+			return fmt.Errorf(
+				"子流程「%s」含发起人自选节点（%s），自动启动时无法选人；请改为指定成员/角色/主管/发起人自己，或去掉嵌套调用",
+				childProc.ProcessName, strings.Join(names, "、"),
+			)
+		}
 		if err := s.engine().Start(ctx, child, &engine.LaunchSelection{}); err != nil {
-			return err
+			// Start 先落库实例再推进节点；失败时删掉空壳，避免卡死且无法重试
+			if child.ID > 0 {
+				_ = s.repo.DeleteInstanceHard(ctx, child.ID)
+			}
+			return fmt.Errorf("启动子流程「%s」失败: %w", childProc.ProcessName, err)
 		}
-		// 回写 childInstanceId，保留原 payload（含 gateStack）
-		var raw map[string]interface{}
-		_ = json.Unmarshal([]byte(t.Payload), &raw)
-		if raw == nil {
-			raw = map[string]interface{}{}
-		}
-		raw["callProcess"] = payload.CallProcess
-		raw["childInstanceId"] = child.ID
-		b, _ := json.Marshal(raw)
-		t.Payload = string(b)
-		t.UpdatedAt = time.Now()
-		_ = s.repo.UpdateTask(ctx, &t)
+		s.bindTaskChildInstanceID(ctx, &t, payload.CallProcess, child.ID)
 
 		if err := s.bootstrapSubProcesses(ctx, child.ID, child.CreateID, child.CreateBy); err != nil {
 			return fmt.Errorf("子流程实例 %d 启动嵌套子流程失败: %w", child.ID, err)
 		}
 	}
 	return nil
+}
+
+// isHollowSubInstance 子流程启动失败留下的空壳：仍审批中，但没有任何活动任务
+func (s *FlowService) isHollowSubInstance(ctx context.Context, inst *model.FlowInstance) bool {
+	if inst == nil || inst.InstanceState != model.InstActive {
+		return false
+	}
+	actives, err := s.repo.ListActiveTasksByInstance(ctx, inst.ID)
+	return err == nil && len(actives) == 0
+}
+
+func (s *FlowService) bindTaskChildInstanceID(ctx context.Context, t *model.FlowTask, callProcess string, childID uint64) {
+	if t == nil || childID == 0 {
+		return
+	}
+	var raw map[string]interface{}
+	_ = json.Unmarshal([]byte(t.Payload), &raw)
+	if raw == nil {
+		raw = map[string]interface{}{}
+	}
+	if callProcess != "" {
+		raw["callProcess"] = callProcess
+	}
+	raw["childInstanceId"] = childID
+	b, _ := json.Marshal(raw)
+	t.Payload = string(b)
+	t.UpdatedAt = time.Now()
+	_ = s.repo.UpdateTask(ctx, t)
+}
+
+func (s *FlowService) clearTaskChildInstanceID(ctx context.Context, t *model.FlowTask) {
+	if t == nil {
+		return
+	}
+	var raw map[string]interface{}
+	_ = json.Unmarshal([]byte(t.Payload), &raw)
+	if raw == nil {
+		return
+	}
+	delete(raw, "childInstanceId")
+	b, _ := json.Marshal(raw)
+	t.Payload = string(b)
+	t.UpdatedAt = time.Now()
+	_ = s.repo.UpdateTask(ctx, t)
 }
 
 // ensureSubProcessNoCycle 校验即将启动的子流程不会与祖先实例形成 processId 环（含直接选自己）

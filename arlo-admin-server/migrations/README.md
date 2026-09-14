@@ -35,6 +35,7 @@ mysql --default-character-set=utf8mb4 -u root -p arlo_admin < 002_flow_approve_r
 ```
 
 - 含：定义侧表与菜单（目录「流程管理」/「流程定义」/表单）、运行时表、审批/监控/演示菜单、`flow_tick`、评论、委托、抄送 `read_at` 等
+- 兼容旧库：`sys_user.nickname` → `name`（与代码 / 001 一致；缺此列时审批人解析会失败）
 - 幂等，可重复执行
 - **导入后重启后端**，超管重新登录；非超管角色需在「角色管理」里勾选新菜单
 

@@ -6,6 +6,45 @@
 
 SET NAMES utf8mb4;
 
+-- ========== 兼容旧库：sys_user.nickname → name（与代码 / 001 基线一致） ==========
+-- 部分线上库仍用 nickname，引擎 OrgStore.GetUser 查 name 会全失败 → 审批人解析为空壳
+SET @arlo_su_nick := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_user' AND COLUMN_NAME = 'nickname'
+);
+SET @arlo_su_name := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_user' AND COLUMN_NAME = 'name'
+);
+-- 仅有 nickname：改名为 name
+SET @arlo_sql := IF(
+  @arlo_su_nick > 0 AND @arlo_su_name = 0,
+  'ALTER TABLE `sys_user` CHANGE COLUMN `nickname` `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '''' COMMENT ''姓名''',
+  'SELECT 1'
+);
+PREPARE arlo_stmt FROM @arlo_sql; EXECUTE arlo_stmt; DEALLOCATE PREPARE arlo_stmt;
+-- 两列并存：回填后删 nickname
+SET @arlo_su_nick := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_user' AND COLUMN_NAME = 'nickname'
+);
+SET @arlo_su_name := (
+  SELECT COUNT(*) FROM information_schema.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'sys_user' AND COLUMN_NAME = 'name'
+);
+SET @arlo_sql := IF(
+  @arlo_su_nick > 0 AND @arlo_su_name > 0,
+  'UPDATE `sys_user` SET `name` = `nickname` WHERE (`name` IS NULL OR `name` = '''') AND `nickname` <> ''''',
+  'SELECT 1'
+);
+PREPARE arlo_stmt FROM @arlo_sql; EXECUTE arlo_stmt; DEALLOCATE PREPARE arlo_stmt;
+SET @arlo_sql := IF(
+  @arlo_su_nick > 0 AND @arlo_su_name > 0,
+  'ALTER TABLE `sys_user` DROP COLUMN `nickname`',
+  'SELECT 1'
+);
+PREPARE arlo_stmt FROM @arlo_sql; EXECUTE arlo_stmt; DEALLOCATE PREPARE arlo_stmt;
+
 -- ========== 定义侧表（旧基线可能没有；与 001 对齐） ==========
 CREATE TABLE IF NOT EXISTS `flow_category` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
