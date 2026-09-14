@@ -145,6 +145,17 @@ func resolveAPIPaths(menuPath string) []string {
 		return []string{"/api/v1/monitor/server"}
 	case "/monitor/job":
 		return []string{"/api/v1/monitor/job"}
+	case "/flow/process", "/flow/form":
+		// 覆盖流程定义与表单模板相关 /flow/*
+		return []string{"/api/v1/flow"}
+	case "/flow/approve/monitor":
+		return []string{
+			"/api/v1/flow/approve/monitor",
+			"/api/v1/flow/approve/instance",
+			"/api/v1/flow/approve/terminate",
+			"/api/v1/flow/approve/admin-transfer",
+			"/api/v1/flow/approve/comment",
+		}
 	default:
 		return []string{"/api/v1" + menuPath}
 	}

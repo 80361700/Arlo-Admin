@@ -42,7 +42,7 @@
       <p class="meta">{{ todayText }}</p>
 
       <h1 class="title">
-        <span class="title-greet">{{ dayPart }}，</span>{{ nickname }}
+        <span class="title-greet">{{ dayPart }}，</span>{{ displayName }}
       </h1>
 
       <p class="lead">
@@ -67,8 +67,8 @@ import { useAppStore } from '@/stores/app'
 const authStore = useAuthStore()
 const appStore = useAppStore()
 
-const nickname = computed(
-  () => authStore.userInfo?.nickname || authStore.userInfo?.username || '用户',
+const displayName = computed(
+  () => authStore.userInfo?.name || authStore.userInfo?.username || '用户',
 )
 
 const dayPart = computed(() => {

@@ -194,7 +194,7 @@ onMounted(async () => {
     min-width: 0;
     background: #f0f2f5;
     overflow-y: auto;
-    padding: 16px;
+    padding: 10px;
   }
 
   .layout-crumb {

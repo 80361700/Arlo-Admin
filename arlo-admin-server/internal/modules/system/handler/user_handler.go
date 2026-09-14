@@ -33,7 +33,7 @@ func NewUserHandler(svc *service.UserService) *UserHandler {
 // @Param        page      query     int     false  "页码"     default(1)
 // @Param        pageSize  query     int     false  "每页条数"  default(10)
 // @Param        username  query     string  false  "用户名"
-// @Param        nickname  query     string  false  "昵称"
+// @Param        name      query     string  false  "姓名"
 // @Param        phone     query     string  false  "手机号"
 // @Param        status    query     int     false  "状态(0禁用 1启用)"
 // @Param        deptId    query     int     false  "部门ID"
@@ -49,6 +49,16 @@ func (h *UserHandler) List(c *gin.Context) {
 	}
 	userID, _ := middleware.GetCurrentUser(c)
 	data, err := h.svc.List(c.Request.Context(), &req, userID)
+	if err != nil {
+		response.Error(c, perrors.Internal, err.Error())
+		return
+	}
+	response.Success(c, data)
+}
+
+// GetAll 全部用户 GET /api/v1/system/user/all
+func (h *UserHandler) GetAll(c *gin.Context) {
+	data, err := h.svc.GetAll(c.Request.Context())
 	if err != nil {
 		response.Error(c, perrors.Internal, err.Error())
 		return

@@ -18,12 +18,13 @@ type FileResponse struct {
 
 // FileListQuery 文件列表查询
 type FileListQuery struct {
-	Page     int    `form:"page" example:"1"`       // 页码
-	PageSize int    `form:"pageSize" example:"10"`  // 每页条数
-	Name     string `form:"name" example:"avatar"`  // 文件名（模糊搜索）
-	MimeType string `form:"mimeType" example:"image"` // MIME类型（模糊搜索）
-	Category string `form:"category" example:"image"` // 文件分类: image/video/audio/document/other
-	IsPublic *int8  `form:"isPublic" example:"1"`   // 是否公开: 0私有 1公开
+	Page             int    `form:"page" example:"1"`                 // 页码
+	PageSize         int    `form:"pageSize" example:"10"`            // 每页条数
+	Name             string `form:"name" example:"avatar"`            // 文件名（模糊搜索）
+	MimeType         string `form:"mimeType" example:"image"`         // MIME类型（模糊搜索）
+	Category         string `form:"category" example:"image"`         // 文件分类: image/video/audio/document/other，多个用逗号
+	ExcludeCategory  string `form:"excludeCategory" example:"image,video"` // 排除分类（逗号分隔），用于「全部文件」等
+	IsPublic         *int8  `form:"isPublic" example:"1"`             // 是否公开: 0私有 1公开
 }
 
 // FileListResponse 文件列表

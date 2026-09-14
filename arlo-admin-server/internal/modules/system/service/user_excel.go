@@ -15,13 +15,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var userExportHeaders = []string{"用户名", "昵称", "手机号", "邮箱", "性别", "部门", "岗位", "角色", "状态", "备注", "创建时间"}
+var userExportHeaders = []string{"用户名", "姓名", "手机号", "邮箱", "性别", "部门", "岗位", "角色", "状态", "备注", "创建时间"}
 
 // ExportUsers 按筛选条件导出用户（最多 10000 条）
 func (s *UserService) ExportUsers(ctx context.Context, req *dto.UserListRequest, currentUserID uint64) ([]byte, error) {
 	scope, _ := s.buildDataScope(ctx, currentUserID)
 	page, pageSize := 1, 10000
-	users, _, err := s.userRepo.List(ctx, req.Username, req.Nickname, req.Phone, req.Status, req.DeptID, scope, page, pageSize)
+	users, _, err := s.userRepo.List(ctx, req.Username, req.Name, req.Phone, req.Status, req.DeptID, scope, page, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (s *UserService) ExportUsers(ctx context.Context, req *dto.UserListRequest,
 			postNames[i] = p.Name
 		}
 		rows = append(rows, []interface{}{
-			u.Username, u.Nickname, u.Phone, u.Email, gender,
+			u.Username, u.Name, u.Phone, u.Email, gender,
 			deptNameMap[u.DeptID],
 			strings.Join(postNames, ","),
 			strings.Join(roleNames, ","),
@@ -81,7 +81,7 @@ func (s *UserService) ImportTemplate() ([]byte, error) {
 		{"zhangsan", "张三", "13800138000", "zhangsan@example.com", "男", "技术部", "开发工程师", "普通用户", "启用", "示例行可删", ""},
 	}
 	headers := []string{
-		"用户名*", "昵称*", "手机号", "邮箱", "性别(未知/男/女)",
+		"用户名*", "姓名*", "手机号", "邮箱", "性别(未知/男/女)",
 		"部门", "岗位(多个用逗号分隔)", "角色(多个用逗号分隔)",
 		"状态(启用/禁用)", "备注", "初始密码(空则用系统默认)",
 	}
@@ -120,12 +120,12 @@ func (s *UserService) ImportUsers(ctx context.Context, data []byte) (ok int, err
 	for i, row := range rows {
 		line := i + 2
 		username := strings.TrimSpace(excel.Cell(row, 0))
-		nickname := strings.TrimSpace(excel.Cell(row, 1))
-		if username == "" && nickname == "" {
+		name := strings.TrimSpace(excel.Cell(row, 1))
+		if username == "" && name == "" {
 			continue
 		}
-		if username == "" || nickname == "" {
-			errs = append(errs, fmt.Sprintf("第%d行: 用户名和昵称必填", line))
+		if username == "" || name == "" {
+			errs = append(errs, fmt.Sprintf("第%d行: 用户名和姓名必填", line))
 			continue
 		}
 		exists, e := s.userRepo.ExistsByUsername(ctx, username, 0)
@@ -179,7 +179,7 @@ func (s *UserService) ImportUsers(ctx context.Context, data []byte) (ok int, err
 		user := &model.User{
 			Username:      username,
 			Password:      string(hashed),
-			Nickname:      nickname,
+			Name:          name,
 			Phone:         strings.TrimSpace(excel.Cell(row, 2)),
 			Email:         strings.TrimSpace(excel.Cell(row, 3)),
 			Gender:        gender,

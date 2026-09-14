@@ -12,7 +12,7 @@ export interface PageResult<T> {
 export interface UserItem {
   id: number
   username: string
-  nickname: string
+  name: string
   avatar: string
   email: string
   phone: string
@@ -32,7 +32,7 @@ export interface UserListParams {
   page: number
   pageSize: number
   username?: string
-  nickname?: string
+  name?: string
   phone?: string
   status?: number
   deptId?: number
@@ -41,7 +41,7 @@ export interface UserListParams {
 export interface CreateUserParams {
   username: string
   password: string
-  nickname: string
+  name: string
   avatar?: string
   email?: string
   phone?: string
@@ -55,7 +55,7 @@ export interface CreateUserParams {
 
 export interface UpdateUserParams {
   id: number
-  nickname: string
+  name: string
   avatar?: string
   email?: string
   phone?: string
@@ -98,6 +98,17 @@ export function updateUserPassword(params: UpdateUserPasswordParams) {
 
 export function unlockUser(id: number) {
   return request.put(`/v1/system/user/${id}/unlock`)
+}
+
+export interface UserOption {
+  id: number
+  username: string
+  name: string
+  status: number
+}
+
+export function getAllUsers() {
+  return request.get<UserOption[]>('/v1/system/user/all')
 }
 
 export function exportUsers(params?: Partial<UserListParams>) {
@@ -204,33 +215,36 @@ export interface DeptTreeNode {
   id: number
   parentId: number
   name: string
+  code: string
   sort: number
+  leaderId: number
   leader: string
   phone: string
   email: string
   status: number
+  remark: string
   children: DeptTreeNode[]
 }
 
 export interface CreateDeptParams {
   parentId?: number
   name: string
+  code?: string
   sort?: number
-  leader?: string
-  phone?: string
-  email?: string
+  leaderId?: number
   status?: number
+  remark?: string
 }
 
 export interface UpdateDeptParams {
   id: number
   parentId?: number
   name: string
+  code?: string
   sort?: number
-  leader?: string
-  phone?: string
-  email?: string
+  leaderId?: number
   status?: number
+  remark?: string
 }
 
 export function getDeptTree() {
@@ -448,6 +462,11 @@ export interface UpdateDictDataParams {
 // 字典类型
 export function getDictTypeList(params: DictTypeListParams) {
   return request.get<PageResult<DictTypeItem>>('/v1/system/dict/type/list', params)
+}
+
+/** 全部字典类型（下拉选项，仅需登录） */
+export function getAllDictTypes() {
+  return request.get<Pick<DictTypeItem, 'id' | 'name' | 'code'>[]>('/v1/system/dict/type/all')
 }
 
 export function getDictTypeDetail(id: number) {

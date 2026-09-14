@@ -26,7 +26,7 @@ func RegisterRoutes(r *gin.RouterGroup, enforcer *casbinpkg.Enforcer) {
 
 	userSvc := service.NewUserService(userRepo, roleRepo, deptRepo, postRepo, enforcer, cfgSvc)
 	roleSvc := service.NewRoleService(roleRepo, deptRepo, enforcer)
-	deptSvc := service.NewDeptService(deptRepo)
+	deptSvc := service.NewDeptService(deptRepo, userRepo)
 	menuSvc := service.NewMenuService(menuRepo, enforcer)
 	postSvc := service.NewPostService(postRepo)
 	dictSvc := service.NewDictService(dictRepo)
@@ -45,6 +45,7 @@ func RegisterRoutes(r *gin.RouterGroup, enforcer *casbinpkg.Enforcer) {
 	{
 		options.GET("/role/all", roleHandler.GetAll)
 		options.GET("/post/all", postHandler.GetAll)
+		options.GET("/user/all", userHandler.GetAll)
 		options.GET("/dept/tree", deptHandler.GetTree)
 		options.GET("/dict/type/all", dictHandler.GetAllDictTypes)
 		options.GET("/dict/data/code/:code", dictHandler.GetDictDatasByCode)

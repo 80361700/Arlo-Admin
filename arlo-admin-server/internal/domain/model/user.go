@@ -11,7 +11,7 @@ type User struct {
 	ID        uint64         `gorm:"primaryKey" json:"id"`
 	Username  string         `gorm:"uniqueIndex;size:32;not null" json:"username"`
 	Password  string         `gorm:"size:128;not null" json:"-"`
-	Nickname  string         `gorm:"size:32;not null" json:"nickname"`
+	Name      string         `gorm:"size:32;not null" json:"name"`
 	Avatar    string         `gorm:"size:255;not null" json:"avatar"`
 	Email     string         `gorm:"size:64;not null" json:"email"`
 	Phone     string         `gorm:"size:20;not null" json:"phone"`

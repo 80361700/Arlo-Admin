@@ -5,8 +5,7 @@
 -- 全新安装：
 --   mysql --default-character-set=utf8mb4 -u用户 -p < migrations/001_baseline_v1.sql
 --
--- 后续变更：新增 002_*.sql 起增量补丁；勿改本文件既有语义。
--- 旧迭代脚本：archive/pre_v1/
+-- 后续变更：新增 003_*.sql 起增量补丁（002 为审批运行时升级包）；勿改本文件既有语义。
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS `arlo_admin`
@@ -37,11 +36,11 @@ CREATE TABLE `sys_dept` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `parent_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '上级部门ID，0为根',
   `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '部门名称',
+  `code` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '部门编码',
   `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
-  `leader` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '负责人',
-  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '联系电话',
-  `email` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '邮箱',
+  `leader_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '负责人用户ID',
   `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '状态: 0=禁用, 1=启用',
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '备注',
   `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
@@ -322,7 +321,7 @@ CREATE TABLE `sys_user` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `username` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户名',
   `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '密码 (bcrypt)',
-  `nickname` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '昵称',
+  `name` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '姓名',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '头像URL',
   `email` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '邮箱',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '手机号',
@@ -366,7 +365,7 @@ CREATE TABLE `sys_user_role` (
 
  SET NAMES utf8mb4 ;
 
-INSERT INTO `sys_dept` (`id`, `parent_id`, `name`, `sort`, `leader`, `phone`, `email`, `status`, `created_at`, `updated_at`, `deleted_at`) VALUES (1,0,'集团总部',0,'管理员','13911933370','arlo.zhang2026@gmail.com',1,'2026-07-09 14:18:40','2026-08-05 13:48:14',NULL),(2,7,'技术部',0,'','','',1,'2026-07-09 14:18:40','2026-08-05 13:49:02',NULL),(3,7,'市场部',1,'','','',1,'2026-07-09 14:18:40','2026-08-05 13:49:21',NULL),(4,7,'人事部',2,'','','',1,'2026-07-09 14:18:40','2026-08-05 13:49:32',NULL),(5,7,'财务部',3,'','','',1,'2026-07-09 14:18:40','2026-08-05 13:49:39',NULL);
+INSERT INTO `sys_dept` (`id`, `parent_id`, `name`, `code`, `sort`, `leader_id`, `status`, `remark`, `created_at`, `updated_at`, `deleted_at`) VALUES (1,0,'集团总部','HQ',0,1,1,'','2026-07-09 14:18:40','2026-08-05 13:48:14',NULL),(2,7,'技术部','TECH',0,0,1,'','2026-07-09 14:18:40','2026-08-05 13:49:02',NULL),(3,7,'市场部','MARKET',1,0,1,'','2026-07-09 14:18:40','2026-08-05 13:49:21',NULL),(4,7,'人事部','HR',2,0,1,'','2026-07-09 14:18:40','2026-08-05 13:49:32',NULL),(5,7,'财务部','FINANCE',3,0,1,'','2026-07-09 14:18:40','2026-08-05 13:49:39',NULL);
 
  SET NAMES utf8mb4 ;
 
@@ -374,7 +373,7 @@ INSERT INTO `sys_post` (`id`, `code`, `name`, `sort`, `status`, `remark`, `creat
 
  SET NAMES utf8mb4 ;
 
-INSERT INTO `sys_user` (`id`, `username`, `password`, `nickname`, `avatar`, `email`, `phone`, `gender`, `dept_id`, `status`, `remark`, `last_login`, `pwd_updated_at`, `must_change_pwd`, `created_at`, `updated_at`, `deleted_at`) VALUES (1,'admin','$2b$12$eg61iIX2U0Ny5MOvINXXk.jbxKx3GZQz2Mg6azDo3Nc7MGR/syuRS','超级管理员','d24ddd8a8f1811f183de3e4188e7eff7','admin@arlo.com','13800000000',2,1,1,'系统管理员','2026-08-05 19:07:53','2026-08-03 11:36:51',0,'2026-07-09 14:18:40','2026-08-05 19:07:53',NULL);
+INSERT INTO `sys_user` (`id`, `username`, `password`, `name`, `avatar`, `email`, `phone`, `gender`, `dept_id`, `status`, `remark`, `last_login`, `pwd_updated_at`, `must_change_pwd`, `created_at`, `updated_at`, `deleted_at`) VALUES (1,'admin','$2b$12$eg61iIX2U0Ny5MOvINXXk.jbxKx3GZQz2Mg6azDo3Nc7MGR/syuRS','超级管理员','d24ddd8a8f1811f183de3e4188e7eff7','admin@arlo.com','13800000000',2,1,1,'系统管理员','2026-08-05 19:07:53','2026-08-03 11:36:51',0,'2026-07-09 14:18:40','2026-08-05 19:07:53',NULL);
 
  SET NAMES utf8mb4 ;
 
@@ -407,3 +406,334 @@ INSERT INTO `sys_role_menu` (`id`, `role_id`, `menu_id`) VALUES (1132,1,88),(113
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 基线结束 (v1)
+
+-- ========== 工作流（流程定义，自 005_flow_process 合入基线） ==========
+DROP TABLE IF EXISTS `flow_process`;
+CREATE TABLE `flow_process` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `category_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '分类ID',
+  `process_key` varchar(64) NOT NULL DEFAULT '' COMMENT '流程唯一标识',
+  `process_name` varchar(128) NOT NULL DEFAULT '' COMMENT '流程名称',
+  `process_icon` varchar(512) NOT NULL DEFAULT '' COMMENT '图标JSON {icon,color}',
+  `process_type` varchar(32) NOT NULL DEFAULT 'main' COMMENT '流程类型 main审批 business业务审批 child子流程',
+  `process_version` int(11) NOT NULL DEFAULT '1' COMMENT '版本号',
+  `process_state` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0禁用 1启用',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `model_content` longtext COMMENT '流程模型JSON',
+  `process_form` longtext COMMENT '表单设计JSON（占位，后续 epic-designer）',
+  `process_setting` text COMMENT '扩展设置JSON',
+  `process_permission` text COMMENT '管理员权限JSON',
+  `created_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `updated_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flow_process_key` (`process_key`),
+  KEY `idx_flow_process_category` (`category_id`),
+  KEY `idx_flow_process_state` (`process_state`),
+  KEY `idx_flow_process_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程定义';
+
+DROP TABLE IF EXISTS `flow_category`;
+CREATE TABLE `flow_category` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '分类名称',
+  `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_category_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程分类';
+
+INSERT INTO `flow_category` (`id`, `name`, `sort`, `remark`, `created_at`, `updated_at`) VALUES
+(1,'默认分类',0,'系统预置',NOW(3),NOW(3));
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(200,0,'工作流',1,'/flow','','Share',20,'',1,1,1,NOW(3),NOW(3),NULL),
+(201,200,'流程管理',2,'/flow/process','flow/process/index','SetUp',1,'flow:process:list',1,1,1,NOW(3),NOW(3),NULL),
+(202,201,'流程查询',3,'','','',1,'flow:process:list',1,1,1,NOW(3),NOW(3),NULL),
+(203,201,'流程新增',3,'','','',2,'flow:process:add',1,1,1,NOW(3),NOW(3),NULL),
+(204,201,'流程编辑',3,'','','',3,'flow:process:edit',1,1,1,NOW(3),NOW(3),NULL),
+(205,201,'流程删除',3,'','','',4,'flow:process:delete',1,1,1,NOW(3),NOW(3),NULL),
+(206,201,'分类管理',3,'','','',5,'flow:category:manage',1,1,1,NOW(3),NOW(3),NULL);
+
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES
+(1,200),(1,201),(1,202),(1,203),(1,204),(1,205),(1,206);
+
+-- ========== 流程历史版本 ==========
+DROP TABLE IF EXISTS `flow_process_history`;
+CREATE TABLE `flow_process_history` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `process_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '流程定义ID',
+  `process_key` varchar(64) NOT NULL DEFAULT '' COMMENT '流程标识快照',
+  `process_name` varchar(128) NOT NULL DEFAULT '' COMMENT '流程名称快照',
+  `process_icon` varchar(512) NOT NULL DEFAULT '' COMMENT '图标JSON快照',
+  `process_type` varchar(32) NOT NULL DEFAULT 'main' COMMENT '流程类型快照',
+  `process_version` int(11) NOT NULL DEFAULT '1' COMMENT '版本号',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注快照',
+  `model_content` longtext COMMENT '流程模型JSON',
+  `process_form` longtext COMMENT '表单设计JSON',
+  `process_setting` text COMMENT '扩展设置JSON',
+  `process_permission` text COMMENT '管理员权限JSON',
+  `created_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `created_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flow_process_history_ver` (`process_id`,`process_version`),
+  KEY `idx_flow_process_history_process` (`process_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程定义历史版本';
+
+-- ========== 表单模板（自 006_flow_form 合入基线） ==========
+DROP TABLE IF EXISTS `flow_form`;
+CREATE TABLE `flow_form` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `category_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '分类ID',
+  `name` varchar(128) NOT NULL DEFAULT '' COMMENT '模板名称',
+  `code` varchar(64) NOT NULL DEFAULT '' COMMENT '模板编码',
+  `form_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1设计表单 2系统表单(预留)',
+  `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '0禁用 1正常',
+  `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `form_schema` longtext COMMENT 'epic-designer JSON',
+  `pc_url` varchar(255) NOT NULL DEFAULT '' COMMENT '系统表单PC地址(预留)',
+  `app_url` varchar(255) NOT NULL DEFAULT '' COMMENT '系统表单APP地址(预留)',
+  `created_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `updated_by` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flow_form_code` (`code`),
+  KEY `idx_flow_form_category` (`category_id`),
+  KEY `idx_flow_form_status` (`status`),
+  KEY `idx_flow_form_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='表单模板';
+
+DROP TABLE IF EXISTS `flow_form_category`;
+CREATE TABLE `flow_form_category` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL DEFAULT '' COMMENT '分类名称',
+  `sort` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
+  `remark` varchar(255) NOT NULL DEFAULT '' COMMENT '备注',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  `deleted_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_form_category_deleted_at` (`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='表单分类';
+
+INSERT INTO `flow_form_category` (`id`, `name`, `sort`, `remark`, `created_at`, `updated_at`) VALUES
+(1,'默认分类',0,'系统预置',NOW(3),NOW(3));
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(210,200,'表单管理',2,'/flow/form','flow/form/index','Document',2,'flow:form:list',1,1,1,NOW(3),NOW(3),NULL),
+(211,210,'表单查询',3,'','','',1,'flow:form:list',1,1,1,NOW(3),NOW(3),NULL),
+(212,210,'表单新增',3,'','','',2,'flow:form:add',1,1,1,NOW(3),NOW(3),NULL),
+(213,210,'表单编辑',3,'','','',3,'flow:form:edit',1,1,1,NOW(3),NOW(3),NULL),
+(214,210,'表单删除',3,'','','',4,'flow:form:delete',1,1,1,NOW(3),NOW(3),NULL),
+(215,210,'表单分类',3,'','','',5,'flow:formCategory:manage',1,1,1,NOW(3),NOW(3),NULL);
+
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES
+(1,210),(1,211),(1,212),(1,213),(1,214),(1,215);
+
+-- ========== 审批运行时（自 002_flow_approve_runtime 合入基线） ==========
+DROP TABLE IF EXISTS `flow_his_task_actor`;
+DROP TABLE IF EXISTS `flow_his_task`;
+DROP TABLE IF EXISTS `flow_task_actor`;
+DROP TABLE IF EXISTS `flow_task`;
+DROP TABLE IF EXISTS `flow_instance_comment`;
+DROP TABLE IF EXISTS `flow_user_delegate`;
+DROP TABLE IF EXISTS `flow_instance`;
+DROP TABLE IF EXISTS `demo_purchase_order`;
+
+CREATE TABLE `flow_instance` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `process_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '流程定义ID',
+  `process_key` varchar(64) NOT NULL DEFAULT '' COMMENT '流程标识',
+  `process_name` varchar(128) NOT NULL DEFAULT '' COMMENT '流程名称快照',
+  `process_version` int(11) NOT NULL DEFAULT '1' COMMENT '定义版本快照',
+  `process_type` varchar(32) NOT NULL DEFAULT 'main' COMMENT '流程类型快照',
+  `model_content` longtext COMMENT '模型JSON快照',
+  `process_form` longtext COMMENT '表单schema快照',
+  `form_data` longtext COMMENT '表单业务数据JSON',
+  `current_node_key` varchar(64) NOT NULL DEFAULT '' COMMENT '当前节点key',
+  `current_node_name` varchar(128) NOT NULL DEFAULT '' COMMENT '当前节点名称',
+  `instance_state` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0审批中 1通过 2拒绝 3撤销 4终止 5超时',
+  `create_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '发起人ID',
+  `create_by` varchar(64) NOT NULL DEFAULT '' COMMENT '发起人姓名',
+  `create_dept_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '发起人部门',
+  `parent_instance_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '父实例(子流程)',
+  `parent_node_key` varchar(64) NOT NULL DEFAULT '' COMMENT '父流程中子流程节点key',
+  `join_gate_key` varchar(64) NOT NULL DEFAULT '' COMMENT '并行/包容汇聚门key',
+  `variable` text COMMENT '运行变量JSON',
+  `finish_time` datetime(3) DEFAULT NULL,
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_inst_process` (`process_id`),
+  KEY `idx_flow_inst_create` (`create_id`),
+  KEY `idx_flow_inst_state` (`instance_state`),
+  KEY `idx_flow_inst_parent` (`parent_instance_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程实例';
+
+CREATE TABLE `flow_task` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `instance_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `node_key` varchar(64) NOT NULL DEFAULT '',
+  `node_name` varchar(128) NOT NULL DEFAULT '',
+  `node_type` int(11) NOT NULL DEFAULT '0' COMMENT '节点类型同设计器',
+  `task_type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0主办 1转办 2委派 3会签 4抄送 5延时 6触发',
+  `task_state` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0活动 1完成 2拒绝 3撤销 4终止 5跳过',
+  `examine_mode` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1依次 2会签 3或签',
+  `parent_task_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `from_node_key` varchar(64) NOT NULL DEFAULT '' COMMENT '来源节点',
+  `gate_token` varchar(64) NOT NULL DEFAULT '' COMMENT '并行/包容分支令牌',
+  `expire_time` datetime(3) DEFAULT NULL COMMENT '延时/超时截止',
+  `payload` text COMMENT '节点配置摘要/延时参数等JSON',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_task_inst` (`instance_id`),
+  KEY `idx_flow_task_state` (`task_state`),
+  KEY `idx_flow_task_node` (`instance_id`,`node_key`),
+  KEY `idx_flow_task_expire` (`expire_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程活动任务';
+
+CREATE TABLE `flow_task_actor` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `task_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `instance_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `actor_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '处理人用户ID',
+  `actor_name` varchar(64) NOT NULL DEFAULT '',
+  `actor_type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0用户',
+  `actor_state` tinyint(4) NOT NULL DEFAULT '0' COMMENT '0待办 1同意 2拒绝 3转交 4跳过',
+  `weight` int(11) NOT NULL DEFAULT '0' COMMENT '依次审批序号',
+  `agent_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '实际操作人',
+  `opinion` varchar(1000) NOT NULL DEFAULT '' COMMENT '意见',
+  `finish_time` datetime(3) DEFAULT NULL,
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_actor_task` (`task_id`),
+  KEY `idx_flow_actor_user` (`actor_id`,`actor_state`),
+  KEY `idx_flow_actor_inst` (`instance_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='任务参与人';
+
+CREATE TABLE `flow_his_task` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `task_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '原任务ID',
+  `instance_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `node_key` varchar(64) NOT NULL DEFAULT '',
+  `node_name` varchar(128) NOT NULL DEFAULT '',
+  `node_type` int(11) NOT NULL DEFAULT '0',
+  `task_type` tinyint(4) NOT NULL DEFAULT '0',
+  `task_state` tinyint(4) NOT NULL DEFAULT '0',
+  `examine_mode` tinyint(4) NOT NULL DEFAULT '1',
+  `from_node_key` varchar(64) NOT NULL DEFAULT '',
+  `gate_token` varchar(64) NOT NULL DEFAULT '',
+  `payload` text,
+  `created_at` datetime(3) DEFAULT NULL,
+  `finish_time` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_his_task_inst` (`instance_id`),
+  KEY `idx_flow_his_task_tid` (`task_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='历史任务';
+
+CREATE TABLE `flow_his_task_actor` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `his_task_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `task_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `instance_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `actor_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `actor_name` varchar(64) NOT NULL DEFAULT '',
+  `actor_type` tinyint(4) NOT NULL DEFAULT '0',
+  `actor_state` tinyint(4) NOT NULL DEFAULT '0',
+  `weight` int(11) NOT NULL DEFAULT '0',
+  `agent_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `opinion` varchar(1000) NOT NULL DEFAULT '',
+  `finish_time` datetime(3) DEFAULT NULL,
+  `created_at` datetime(3) DEFAULT NULL,
+  `read_at` datetime(3) DEFAULT NULL COMMENT '抄送已读时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_his_actor_inst` (`instance_id`),
+  KEY `idx_flow_his_actor_user` (`actor_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='历史任务参与人';
+
+CREATE TABLE `flow_instance_comment` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `instance_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `user_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `user_name` varchar(64) NOT NULL DEFAULT '',
+  `content` varchar(500) NOT NULL DEFAULT '',
+  `created_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_flow_comment_inst` (`instance_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='流程实例评论';
+
+CREATE TABLE `flow_user_delegate` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '委托人',
+  `to_user_id` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '受托人',
+  `to_user_name` varchar(64) NOT NULL DEFAULT '' COMMENT '受托人姓名',
+  `enabled` tinyint(4) NOT NULL DEFAULT '1' COMMENT '1启用 0停用',
+  `remark` varchar(255) NOT NULL DEFAULT '',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_flow_delegate_user` (`user_id`),
+  KEY `idx_flow_delegate_to` (`to_user_id`, `enabled`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='审批委托';
+
+CREATE TABLE `demo_purchase_order` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(128) NOT NULL DEFAULT '' COMMENT '名称',
+  `content` varchar(512) NOT NULL DEFAULT '' COMMENT '内容',
+  `status` tinyint NOT NULL DEFAULT 0 COMMENT '0待审批 1审批中 2已通过 3已拒绝',
+  `instance_id` bigint unsigned NOT NULL DEFAULT 0 COMMENT '关联流程实例',
+  `process_id` bigint unsigned NOT NULL DEFAULT 0 COMMENT '绑定流程ID',
+  `process_key` varchar(64) NOT NULL DEFAULT '' COMMENT '绑定流程KEY',
+  `create_id` bigint unsigned NOT NULL DEFAULT 0,
+  `create_by` varchar(64) NOT NULL DEFAULT '',
+  `created_at` datetime(3) DEFAULT NULL,
+  `updated_at` datetime(3) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_demo_po_status` (`status`),
+  KEY `idx_demo_po_instance` (`instance_id`),
+  KEY `idx_demo_po_create` (`create_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='演示采购单（业务流程）';
+
+INSERT INTO `sys_job` (`id`, `name`, `handler`, `cron`, `params`, `status`, `remark`, `last_run_at`, `last_status`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(2,'流程定时推进','flow_tick','* * * * *','',1,'延时节点到期、审批超时自动通过/拒绝、审批提醒站内信',NULL,0,NOW(3),NOW(3),NULL);
+
+INSERT INTO `sys_menu` (`id`, `parent_id`, `name`, `type`, `path`, `component`, `icon`, `sort`, `permission`, `status`, `visible`, `keep_alive`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(230,0,'流程审批',1,'/approve','','EditPen',19,'',1,1,1,NOW(3),NOW(3),NULL),
+(220,230,'发起审批',2,'/flow/approve/launch','flow/approve/launch/index','Promotion',1,'flow:approve:launch',1,1,1,NOW(3),NOW(3),NULL),
+(221,230,'待审批',2,'/flow/approve/pending','flow/approve/pending/index','Document',2,'flow:approve:todo',1,1,1,NOW(3),NOW(3),NULL),
+(226,230,'我的申请',2,'/flow/approve/mine','flow/approve/mine/index','Folder',3,'flow:approve:mine',1,1,1,NOW(3),NOW(3),NULL),
+(227,230,'我收到的',2,'/flow/approve/received','flow/approve/received/index','User',4,'flow:approve:received',1,1,1,NOW(3),NOW(3),NULL),
+(228,230,'认领任务',2,'/flow/approve/claim','flow/approve/claim/index','Box',5,'flow:approve:claim',1,1,1,NOW(3),NOW(3),NULL),
+(229,230,'已审批',2,'/flow/approve/approved','flow/approve/approved/index','CircleCheck',6,'flow:approve:approved',1,1,1,NOW(3),NOW(3),NULL),
+(225,230,'审批详情',2,'/flow/approve/detail','flow/approve/detail/index','',99,'flow:approve:todo',1,0,1,NOW(3),NOW(3),NULL),
+(222,220,'发起',3,'','','',1,'flow:approve:launch',1,1,1,NOW(3),NOW(3),NULL),
+(223,221,'待办查询',3,'','','',1,'flow:approve:todo',1,1,1,NOW(3),NOW(3),NULL),
+(224,221,'审批处理',3,'','','',2,'flow:approve:handle',1,1,1,NOW(3),NOW(3),NULL),
+(231,226,'申请查询',3,'','','',1,'flow:approve:mine',1,1,1,NOW(3),NOW(3),NULL),
+(232,227,'抄送查询',3,'','','',1,'flow:approve:received',1,1,1,NOW(3),NOW(3),NULL),
+(233,228,'认领查询',3,'','','',1,'flow:approve:claim',1,1,1,NOW(3),NOW(3),NULL),
+(234,229,'已审查询',3,'','','',1,'flow:approve:approved',1,1,1,NOW(3),NOW(3),NULL),
+(235,200,'流程监控',2,'/flow/approve/monitor','flow/approve/monitor/index','Monitor',3,'flow:approve:monitor',1,1,1,NOW(3),NOW(3),NULL),
+(236,235,'监控查询',3,'','','',1,'flow:approve:monitor',1,1,1,NOW(3),NOW(3),NULL),
+(237,235,'终止流程',3,'','','',2,'flow:approve:terminate',1,1,1,NOW(3),NOW(3),NULL),
+(238,235,'管理员转办',3,'','','',3,'flow:approve:adminTransfer',1,1,1,NOW(3),NOW(3),NULL),
+(240,200,'测试业务单据',2,'/business/purchase-order','business/demo/order','ShoppingCart',4,'business:purchaseOrder:list',1,1,1,NOW(3),NOW(3),NULL),
+(241,240,'单据查询',3,'','','',1,'business:purchaseOrder:list',1,1,1,NOW(3),NOW(3),NULL),
+(242,240,'单据新增',3,'','','',2,'business:purchaseOrder:add',1,1,1,NOW(3),NOW(3),NULL),
+(243,240,'单据删除',3,'','','',3,'business:purchaseOrder:delete',1,1,1,NOW(3),NOW(3),NULL),
+(244,240,'发起审批',3,'','','',4,'business:purchaseOrder:launch',1,1,1,NOW(3),NOW(3),NULL);
+
+INSERT INTO `sys_role_menu` (`role_id`, `menu_id`) VALUES
+(1,220),(1,221),(1,222),(1,223),(1,224),(1,225),(1,226),(1,227),(1,228),(1,229),
+(1,230),(1,231),(1,232),(1,233),(1,234),(1,235),(1,236),(1,237),(1,238),
+(1,240),(1,241),(1,242),(1,243),(1,244);

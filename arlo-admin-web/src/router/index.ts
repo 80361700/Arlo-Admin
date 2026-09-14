@@ -76,7 +76,7 @@ function menuTreeToRoutes(menus: MenuTreeNode[], parentPath: string = ''): Route
   const routes: RouteRecordRaw[] = []
 
   for (const menu of menus) {
-    if (menu.visible === 0) continue
+    // visible=0 仍注册路由（隐藏页，如审批详情深链）；侧边栏另按 visible 过滤
 
     if (menu.type === 1) {
       const childRoutes = menuTreeToRoutes(menu.children || [], menu.path || '')

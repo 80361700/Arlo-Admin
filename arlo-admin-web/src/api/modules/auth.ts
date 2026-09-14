@@ -23,7 +23,7 @@ export interface CaptchaResult {
 export interface UserInfo {
   id: number
   username: string
-  nickname: string
+  name: string
   avatar: string
   email: string
   phone: string
@@ -42,7 +42,7 @@ export interface UserInfo {
 }
 
 export interface UpdateProfileParams {
-  nickname: string
+  name: string
   gender: number
   phone: string
   email: string

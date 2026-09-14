@@ -5,7 +5,9 @@ import (
 	"arlo-admin/internal/config"
 	corejob "arlo-admin/internal/job"
 	"arlo-admin/internal/modules/auth"
+	demomod "arlo-admin/internal/modules/demo"
 	"arlo-admin/internal/modules/file"
+	flowmod "arlo-admin/internal/modules/flow"
 	jobmod "arlo-admin/internal/modules/job"
 	"arlo-admin/internal/modules/log"
 	"arlo-admin/internal/modules/member"
@@ -59,6 +61,8 @@ func Setup(mode string, enforcer *casbinpkg.Enforcer, sch *corejob.Scheduler) *g
 	message.RegisterRoutes(api, enforcer)
 	sysconfig.RegisterRoutes(api, enforcer)
 	file.RegisterRoutes(api, enforcer)
+	flowmod.RegisterRoutes(api, enforcer)
+	demomod.RegisterRoutes(api, enforcer)
 
 	return r
 }

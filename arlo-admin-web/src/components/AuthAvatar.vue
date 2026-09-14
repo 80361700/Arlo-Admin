@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthFileSrc } from '@/composables/useAuthFileSrc'
+import { useAuthFileSrc } from '@/utils/useAuthFileSrc'
 import { UserFilled } from '@element-plus/icons-vue'
 import type { Component } from 'vue'
 import { toRef } from 'vue'

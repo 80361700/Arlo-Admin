@@ -17,6 +17,7 @@
     <!-- 搜索工具栏 -->
     <div class="picker-toolbar">
       <el-select
+        v-if="showCategoryFilter"
         v-model="query.category"
         placeholder="素材分类"
         style="width: 140px"
@@ -25,7 +26,7 @@
       >
         <el-option
           v-for="opt in categoryOptions"
-          :key="opt.value"
+          :key="opt.value || 'all'"
           :label="opt.label"
           :value="opt.value"
         />
@@ -265,38 +266,68 @@ const canConfirm = computed(() => {
 
 // 分类下拉选项根据 acceptTypes 过滤
 const categoryOptions = computed(() => {
-  const options: { label: string; value: string }[] = [{ label: '全部', value: '' }]
-  const seen = new Set<string>()
-  for (const type of props.acceptTypes) {
-    if (type === 'image' && !seen.has('image')) {
-      seen.add('image')
-      options.push({ label: '图片', value: 'image' })
-    }
-    if (type === 'video' && !seen.has('video')) {
-      seen.add('video')
-      options.push({ label: '视频', value: 'video' })
-    }
-    if (type === 'file') {
-      for (const cat of ['audio', 'document', 'other'] as const) {
-        if (!seen.has(cat)) {
-          seen.add(cat)
-          options.push({ label: categoryLabel(cat), value: cat })
-        }
-      }
-    }
+  const allowed = allowedCategories()
+  // 仅一种分类时不展示「全部」，避免误解成全站素材
+  const options: { label: string; value: string }[] =
+    allowed.length > 1 ? [{ label: allCategoryLabel.value, value: '' }] : []
+  for (const cat of allowed) {
+    options.push({ label: categoryLabel(cat), value: cat })
   }
   return options
 })
 
-// 上传文件类型
+const allCategoryLabel = computed(() => {
+  const types = props.acceptTypes
+  if (types.length === 1 && types[0] === 'image') return '全部图片'
+  if (types.length === 1 && types[0] === 'video') return '全部视频'
+  if (types.length === 1 && types[0] === 'file') return '全部文件'
+  return '全部'
+})
+
+const showCategoryFilter = computed(() => categoryOptions.value.length > 1)
+
+// 上传 accept：按当前 Tab，文件 Tab 不再包含图片（避免上传后被分类过滤「消失」）
 const uploadAccept = computed(() => {
   switch (activeTab.value) {
-    case 'image': return 'image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.ico,.svg'
-    case 'video': return 'video/*,.mp4,.webm,.mov,.avi'
-    case 'file': return UPLOAD_ACCEPT
-    default: return UPLOAD_ACCEPT
+    case 'image':
+      return 'image/*,.jpg,.jpeg,.png,.gif,.webp,.bmp,.ico,.svg'
+    case 'video':
+      return 'video/*,.mp4,.webm,.mov,.avi'
+    case 'file':
+      return '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.zip,.rar,.7z,.mp3,.wav'
+    default:
+      return UPLOAD_ACCEPT
   }
 })
+
+/** 本地 File → 推断 category（与后端 detectCategory 对齐） */
+function inferCategoryFromFile(file: File): string {
+  const mime = file.type || ''
+  if (mime.startsWith('image/')) return 'image'
+  if (mime.startsWith('video/')) return 'video'
+  if (mime.startsWith('audio/')) return 'audio'
+  const ext = file.name.split('.').pop()?.toLowerCase() || ''
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico', 'svg'].includes(ext)) return 'image'
+  if (['mp4', 'webm', 'mov', 'avi'].includes(ext)) return 'video'
+  if (['mp3', 'wav'].includes(ext)) return 'audio'
+  if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'md'].includes(ext)) return 'document'
+  return 'other'
+}
+
+function isCategoryAllowed(category: string) {
+  return allowedCategories().includes(category)
+}
+
+// 已选/刚上传的文件缓存（避免刷新列表后确认找不到）
+const fileCache = ref<Map<number, FileItem>>(new Map())
+
+function rememberFile(file: FileItem) {
+  fileCache.value.set(file.id, file)
+}
+
+function resolveSelectedFile(id: number): FileItem | undefined {
+  return fileCache.value.get(id) || fileList.value.find((f) => f.id === id)
+}
 
 // ==================== Watch ====================
 watch(() => props.modelValue, (visible) => {
@@ -317,6 +348,7 @@ watch(() => props.modelValue, (visible) => {
     // 重置选择
     singleSelectedId.value = 0
     selectedMap.value.clear()
+    fileCache.value.clear()
 
     loadFiles()
   }
@@ -354,24 +386,80 @@ function handlePageChange() {
 
 async function loadFiles() {
   try {
-    const category = activeTab.value === 'file' ? '' : activeTab.value
+    const filters = resolveListFilters()
     const res = await getFileList({
       page: query.page,
       pageSize: query.pageSize,
       name: query.name || undefined,
-      category: query.category || category || undefined,
+      category: filters.category,
+      excludeCategory: filters.excludeCategory,
       isPublic: query.isPublic,
     })
-    fileList.value = res.data.list || []
+    const allowed = new Set(allowedCategories())
+    const list = (res.data.list || []).filter((f) => allowed.has(f.category))
+    // 刚上传/已选但不在当前页的，保留在列表顶部，避免「上传成功却看不见」
+    const extras = [...fileCache.value.values()].filter(
+      (f) => allowed.has(f.category) && !list.some((x) => x.id === f.id),
+    )
+    fileList.value = [...extras, ...list]
     total.value = res.data.total
   } catch (err: any) {
     showRequestError(err, '加载文件失败')
   }
 }
 
+/** acceptTypes → 允许的素材 category 列表 */
+function allowedCategories(): string[] {
+  const cats: string[] = []
+  const seen = new Set<string>()
+  for (const type of props.acceptTypes) {
+    const list =
+      type === 'image'
+        ? ['image']
+        : type === 'video'
+          ? ['video']
+          : type === 'file'
+            ? ['audio', 'document', 'other']
+            : []
+    for (const c of list) {
+      if (!seen.has(c)) {
+        seen.add(c)
+        cats.push(c)
+      }
+    }
+  }
+  return cats
+}
+
+/**
+ * 列表过滤参数：
+ * - 单分类直接传 category
+ * - 「全部文件」等多分类用 excludeCategory 反选（避免逗号 IN 查询异常导致空列表）
+ */
+function resolveListFilters(): { category?: string; excludeCategory?: string } {
+  const allowed = allowedCategories()
+  if (!allowed.length) return {}
+
+  if (query.category && allowed.includes(query.category)) {
+    return { category: query.category }
+  }
+
+  if (allowed.length === 1) {
+    return { category: allowed[0] }
+  }
+
+  const allCats = ['image', 'video', 'audio', 'document', 'other']
+  const excluded = allCats.filter((c) => !allowed.includes(c))
+  if (excluded.length) {
+    return { excludeCategory: excluded.join(',') }
+  }
+  return {}
+}
+
 // ==================== Selection ====================
 function handleRowClick(row: any) {
   const file = row as FileItem
+  rememberFile(file)
   if (props.mode === 'single') {
     singleSelectedId.value = file.id
   } else {
@@ -385,6 +473,7 @@ function toggleRow(row: FileItem, checked: boolean) {
       ElMessage.warning(`最多只能选择 ${props.maxCount} 个文件`)
       return
     }
+    rememberFile(row)
     selectedMap.value.set(row.id, row)
   } else {
     selectedMap.value.delete(row.id)
@@ -429,33 +518,47 @@ async function handleUploadFile(e: Event) {
   const files = input.files
   if (!files || files.length === 0) return
 
-  // 检查数量限制
   if (props.maxCount > 0 && files.length > props.maxCount) {
     ElMessage.warning(`一次最多上传 ${props.maxCount} 个文件`)
     input.value = ''
     return
   }
 
+  let successCount = 0
   for (const file of files) {
     if (!isAllowedUploadFile(file)) {
       ElMessage.warning(`「${file.name}」类型不允许上传`)
       continue
     }
+    const category = inferCategoryFromFile(file)
+    if (!isCategoryAllowed(category)) {
+      ElMessage.warning(`「${file.name}」不属于当前可选类型，请重新选择`)
+      continue
+    }
     try {
       const res = await uploadFile(file, { public: true })
-      // 自动选中新上传的文件
+      const item = res.data
+      rememberFile(item)
+      // 立刻出现在列表顶部，避免刷新过滤/分页导致「上传了但看不见」
+      fileList.value = [item, ...fileList.value.filter((f) => f.id !== item.id)]
       if (props.mode === 'single') {
-        singleSelectedId.value = res.data.id
-      } else {
-        selectedMap.value.set(res.data.id, res.data)
+        singleSelectedId.value = item.id
+      } else if (!(props.maxCount > 0 && selectedMap.value.size >= props.maxCount)) {
+        selectedMap.value.set(item.id, item)
       }
+      successCount++
     } catch (err: any) {
       ElMessage.error(file.name + ': ' + (err.message || '上传失败'))
     }
   }
 
   input.value = ''
-  loadFiles()
+  if (successCount > 0) {
+    ElMessage.success(`成功上传 ${successCount} 个素材`)
+    query.page = 1
+    // 后台再拉一次，保证和服务器一致；失败也不影响刚插入的展示
+    void loadFiles()
+  }
 }
 
 // ==================== Delete ====================
@@ -479,12 +582,20 @@ async function handleDelete(row: FileItem) {
 // ==================== Confirm / Cancel ====================
 function handleConfirm() {
   if (props.mode === 'single') {
-    const file = fileList.value.find(f => f.id === singleSelectedId.value)
+    const file = resolveSelectedFile(singleSelectedId.value)
     if (file) {
       emit('confirm', [file])
+    } else {
+      ElMessage.warning('请先选择素材')
+      return
     }
   } else {
-    emit('confirm', Array.from(selectedMap.value.values()))
+    const list = Array.from(selectedMap.value.values())
+    if (!list.length) {
+      ElMessage.warning('请先选择素材')
+      return
+    }
+    emit('confirm', list)
   }
   emit('update:modelValue', false)
 }
@@ -547,6 +658,11 @@ function fileIcon(mimeType: string) {
   background: #f5f7fa;
   border-radius: 4px;
 
+  // 已有 gap，去掉 EP 相邻按钮默认 margin-left，避免间距翻倍
+  :deep(.el-button + .el-button) {
+    margin-left: 0;
+  }
+
   .el-button span {
     margin-left: 4px;
   }
@@ -578,6 +694,10 @@ function fileIcon(mimeType: string) {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+
+  :deep(.el-button + .el-button) {
+    margin-left: 0;
+  }
 }
 
 // 表格行选中样式

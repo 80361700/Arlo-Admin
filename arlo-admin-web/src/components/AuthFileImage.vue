@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { useAuthFileSrc } from '@/composables/useAuthFileSrc'
+import { useAuthFileSrc } from '@/utils/useAuthFileSrc'
 import { toRef } from 'vue'
 
 type ImageFit = '' | 'contain' | 'cover' | 'fill' | 'none' | 'scale-down'

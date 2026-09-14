@@ -124,6 +124,7 @@ function select(name: string) {
   gap: 6px;
   max-height: 380px;
   overflow-y: auto;
+  background: transparent;
 }
 
 .icon-cell {
@@ -137,10 +138,12 @@ function select(name: string) {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s;
+  background: transparent;
 
   &:hover {
     border-color: var(--el-color-primary);
     color: var(--el-color-primary);
+    background: transparent;
   }
 
   &.active {

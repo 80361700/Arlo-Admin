@@ -1,10 +1,8 @@
 # arlo-admin-server
 
-Arlo Admin 后端服务：REST API、JWT 认证、Casbin 功能权限、数据权限、文件存储、站内信、定时任务与监控等。
+**定位**：Arlo Admin 后端 API。底座含 JWT、Casbin、数据权限、文件、站内信、定时任务与监控；另含**工作流审批引擎**（定义落库、运行时推进、延时/超时/提醒）。能力说明见根目录 [README.md](../README.md)、[HANDOFF.md](../HANDOFF.md)。
 
 在线体验：[http://101.200.43.49/](http://101.200.43.49/)（`admin` / `admin123`）
-
-仓库总览见根目录 [README.md](../README.md)；架构细节见 [HANDOFF.md](../HANDOFF.md)。
 
 ## 目录一览
 
@@ -16,7 +14,7 @@ arlo-admin-server/
 │   ├── app/             # 生命周期
 │   ├── domain/          # 跨模块共享：用户/角色/菜单/部门/岗位
 │   ├── job/             # 进程内调度引擎
-│   ├── modules/         # HTTP 业务模块（auth/system/file/…）
+│   ├── modules/         # HTTP 业务模块（auth/system/flow/file/…）
 │   └── router/          # Gin 路由挂载
 ├── pkg/                 # jwt / casbin / middleware / datascope / storage …
 ├── migrations/          # SQL 迁移（见 migrations/README.md）
@@ -60,7 +58,7 @@ make prod
 1. 在 `internal/modules/{name}/` 按 handler → service → repository → model/dto 增加代码  
 2. 组织主数据（User/Role/Menu 等）复用 `internal/domain`，不要复制一份  
 3. 在 `internal/router/router.go` 挂载路由  
-4. 需要菜单/权限码时写迁移并分配角色
+4. 需要菜单/权限码时写迁移并分配角色  
 
 进程内定时任务：执行逻辑在 `internal/job`，管理 API 在 `modules/job`。
 

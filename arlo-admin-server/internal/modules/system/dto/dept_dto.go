@@ -2,36 +2,39 @@ package dto
 
 // CreateDeptRequest 创建部门请求
 type CreateDeptRequest struct {
-	ParentID uint64 `json:"parentId" example:"0"`                           // 父部门ID（0=顶级部门）
-	Name     string `json:"name" binding:"required,max=64" example:"技术部"`   // 部门名称
-	Sort     int    `json:"sort" example:"1"`                               // 排序
-	Leader   string `json:"leader" example:"张三"`                            // 负责人
-	Phone    string `json:"phone" example:"13800138000"`                    // 联系电话
-	Email    string `json:"email" example:"tech@example.com"`               // 邮箱
-	Status   int8   `json:"status" example:"1"`                             // 状态（0=禁用 1=启用）
+	ParentID uint64 `json:"parentId" example:"0"`                         // 父部门ID（0=顶级部门）
+	Name     string `json:"name" binding:"required,max=64" example:"技术部"` // 部门名称
+	Code     string `json:"code" binding:"max=64" example:"TECH"`         // 部门编码
+	Sort     int    `json:"sort" example:"1"`                             // 排序
+	LeaderID uint64 `json:"leaderId" example:"1"`                         // 负责人用户ID（0=未指定）
+	Status   int8   `json:"status" example:"1"`                           // 状态（0=禁用 1=启用）
+	Remark   string `json:"remark" binding:"max=255" example:"研发相关"`      // 备注
 }
 
 // UpdateDeptRequest 更新部门请求
 type UpdateDeptRequest struct {
-	ID       uint64 `json:"id" binding:"required" example:"1"`              // 部门ID
-	ParentID uint64 `json:"parentId" example:"0"`                           // 父部门ID
-	Name     string `json:"name" binding:"required,max=64" example:"技术部"`   // 部门名称
-	Sort     int    `json:"sort" example:"1"`                               // 排序
-	Leader   string `json:"leader" example:"张三"`                            // 负责人
-	Phone    string `json:"phone" example:"13800138000"`                    // 联系电话
-	Email    string `json:"email" example:"tech@example.com"`               // 邮箱
-	Status   int8   `json:"status" example:"1"`                             // 状态（0=禁用 1=启用）
+	ID       uint64 `json:"id" binding:"required" example:"1"`            // 部门ID
+	ParentID uint64 `json:"parentId" example:"0"`                         // 父部门ID
+	Name     string `json:"name" binding:"required,max=64" example:"技术部"` // 部门名称
+	Code     string `json:"code" binding:"max=64" example:"TECH"`         // 部门编码
+	Sort     int    `json:"sort" example:"1"`                             // 排序
+	LeaderID uint64 `json:"leaderId" example:"1"`                         // 负责人用户ID（0=未指定）
+	Status   int8   `json:"status" example:"1"`                           // 状态（0=禁用 1=启用）
+	Remark   string `json:"remark" binding:"max=255" example:"研发相关"`      // 备注
 }
 
 // DeptTreeResponse 部门树节点响应
 type DeptTreeResponse struct {
-	ID       uint64             `json:"id" example:"1"`                   // 部门ID
-	ParentID uint64             `json:"parentId" example:"0"`              // 父部门ID
-	Name     string             `json:"name" example:"技术部"`               // 部门名称
-	Sort     int                `json:"sort" example:"1"`                  // 排序
-	Leader   string             `json:"leader" example:"张三"`              // 负责人
-	Phone    string             `json:"phone" example:"13800138000"`       // 联系电话
-	Email    string             `json:"email" example:"tech@example.com"` // 邮箱
-	Status   int8               `json:"status" example:"1"`               // 状态（0=禁用 1=启用）
-	Children []*DeptTreeResponse `json:"children"`                        // 子部门列表
+	ID       uint64              `json:"id" example:"1"`                  // 部门ID
+	ParentID uint64              `json:"parentId" example:"0"`             // 父部门ID
+	Name     string              `json:"name" example:"技术部"`              // 部门名称
+	Code     string              `json:"code" example:"TECH"`              // 部门编码
+	Sort     int                 `json:"sort" example:"1"`                 // 排序
+	LeaderID uint64              `json:"leaderId" example:"1"`             // 负责人用户ID
+	Leader   string              `json:"leader" example:"张三"`              // 负责人姓名（展示用）
+	Phone    string              `json:"phone" example:"13800138000"`      // 负责人联系电话（来自用户）
+	Email    string              `json:"email" example:"tech@example.com"` // 负责人邮箱（来自用户）
+	Status   int8                `json:"status" example:"1"`               // 状态（0=禁用 1=启用）
+	Remark   string              `json:"remark" example:"研发相关"`            // 备注
+	Children []*DeptTreeResponse `json:"children"`                         // 子部门列表
 }

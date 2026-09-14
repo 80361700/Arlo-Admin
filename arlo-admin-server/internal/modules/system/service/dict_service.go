@@ -68,6 +68,9 @@ func (s *DictService) GetAllDictTypes(ctx context.Context) ([]dto.DictTypeRespon
 	}
 	list := make([]dto.DictTypeResponse, 0, len(dts))
 	for _, dt := range dts {
+		if dt.Status != 1 {
+			continue
+		}
 		list = append(list, dto.DictTypeResponse{
 			ID:   dt.ID,
 			Name: dt.Name,

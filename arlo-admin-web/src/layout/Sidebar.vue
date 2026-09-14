@@ -34,7 +34,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { MenuTreeNode } from '@/api'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
-import { useAuthFileSrc } from '@/composables/useAuthFileSrc'
+import { useAuthFileSrc } from '@/utils/useAuthFileSrc'
 import SidebarItem from './SidebarItem.vue'
 
 const props = withDefaults(defineProps<{

@@ -28,6 +28,8 @@ export interface FileListQuery {
   name?: string
   mimeType?: string
   category?: string
+  /** 排除分类，逗号分隔，如 image,video（用于「全部文件」） */
+  excludeCategory?: string
   isPublic?: number
   page: number
   pageSize: number

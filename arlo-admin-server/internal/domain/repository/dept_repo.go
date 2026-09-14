@@ -61,6 +61,19 @@ func (r *DeptRepository) FindAll(ctx context.Context) ([]model.Dept, error) {
 	return depts, err
 }
 
+func (r *DeptRepository) ExistsByCode(ctx context.Context, code string, excludeID uint64) (bool, error) {
+	if code == "" {
+		return false, nil
+	}
+	var count int64
+	q := r.db.WithContext(ctx).Model(&model.Dept{}).Where("code = ?", code)
+	if excludeID > 0 {
+		q = q.Where("id != ?", excludeID)
+	}
+	err := q.Count(&count).Error
+	return count > 0, err
+}
+
 func (r *DeptRepository) HasChildren(ctx context.Context, parentID uint64) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).Model(&model.Dept{}).Where("parent_id = ?", parentID).Count(&count).Error

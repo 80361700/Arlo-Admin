@@ -1,20 +1,42 @@
 # Arlo Admin
 
-通用后台管理**底座**：账号权限、组织、日志、文件、配置、消息、监控等开箱能力齐全，业务功能按模块增量扩展。
+**定位**：**审批流引擎** + **通用后台管理底座**。
+
+自研可视化审批流（设计 → 发起 → 办理 → 监控），业务单据可直接挂流程；同时具备账号权限、组织、日志、文件、配置、消息、监控等后台能力，按模块继续扩展即可。
+
+架构与目录约定见 [HANDOFF.md](./HANDOFF.md)。
 
 ## 在线体验
 
 - 地址：[http://101.200.43.49/](http://101.200.43.49/)
 - 账号：`admin` / `admin123`
 
+
+## 工作流审批
+
+| 能力 | 说明 |
+|------|------|
+| 流程 / 表单设计 | 分类；模型与 Schema 落库；定义历史版本与检出 |
+| 节点 | 审批（依次 / 会签 / 或签）、抄送、条件分支、延时、触发、子流程 |
+| 办理人 | 指定人 / 角色 / 部门负责人 / 发起人自选；加签、减签、转办、委托 |
+| 办理动作 | 同意 / 拒绝 / 退回、批量同意与拒绝、催办、撤销、草稿、改单重提、评论、运行时抄送 |
+| 列表 | 发起、待办、已办、我的申请、我收到的、认领、流程监控（含终止 / 管理员转办） |
+| 运维与扩展 | `flow_tick` 延时推进与超时/提醒；打印；业务单绑 `process_id`（演示：采购单） |
+
+| 端 | 路径 |
+|----|------|
+| 后端 | `arlo-admin-server/internal/modules/flow/`（`engine/` 推进逻辑） |
+| 前端 | `arlo-admin-web/src/views/flow/`、`components/flowProcess/`、`components/designer-extensions/` |
+| 迁移 | 全新 `001_baseline`；已有库补跑 `002_flow_approve_runtime.sql` |
+
 ## 仓库结构
 
 | 目录 | 说明 |
 |------|------|
-| [arlo-admin-server](./arlo-admin-server/) | 后端 API（Go + Gin + GORM + Casbin） |
-| [arlo-admin-web](./arlo-admin-web/) | 管理端前端（Vue 3 + Element Plus） |
+| [arlo-admin-server](./arlo-admin-server/) | 后端 API（启动 / 迁移 / 扩展模块） |
+| [arlo-admin-web](./arlo-admin-web/) | 管理端前端（启动 / 代理 / 约定） |
 | [deployments](./deployments/) | 生产部署（Compose / Linux / 宝塔） |
-| [HANDOFF.md](./HANDOFF.md) | 架构约定与开发交接（给后续开发 / AI 用） |
+| [HANDOFF.md](./HANDOFF.md) | 架构约定、工作流模块说明、坑点与扩展 |
 
 早期规划草稿已废弃，**以代码与 HANDOFF 为准**。
 
@@ -29,7 +51,7 @@
 
 ```bash
 mysql --default-character-set=utf8mb4 -u root -p < arlo-admin-server/migrations/001_baseline_v1.sql
-# 详见 arlo-admin-server/migrations/README.md
+# 已有旧基线库再执行：002_flow_approve_runtime.sql（见 migrations/README.md）
 ```
 
 ### 2. 后端
@@ -67,11 +89,9 @@ make docker-up
 
 | 文档 | 内容 |
 |------|------|
-| [deployments/README.md](./deployments/README.md) | 生产部署（Compose / Linux / 宝塔） |
-| [arlo-admin-server/README.md](./arlo-admin-server/README.md) | 后端目录、运行、迁移 |
-| [arlo-admin-web/README.md](./arlo-admin-web/README.md) | 前端目录、开发代理、主题与约定 |
-| [HANDOFF.md](./HANDOFF.md) | 分层、`domain`、权限、坑点、扩展方式 |
+| [HANDOFF.md](./HANDOFF.md) | 分层、权限、**工作流模块**、坑点、扩展方式 |
+| [deployments/README.md](./deployments/README.md) | 生产部署 |
+| [arlo-admin-server/README.md](./arlo-admin-server/README.md) | 后端启动与迁移 |
+| [arlo-admin-web/README.md](./arlo-admin-web/README.md) | 前端启动与约定 |
 
-## 定位说明
-
-适合作为内部或商业项目的管理后台骨架；会员微信等部分能力仍为预留。生产上线前请完成密钥轮换、HTTPS、备份与监控（见部署文档检查清单）。
+生产上线前请完成密钥轮换、HTTPS、备份与监控（见部署文档检查清单）。

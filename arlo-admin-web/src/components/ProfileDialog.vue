@@ -29,8 +29,8 @@
           <el-form-item label="用户名">
             <el-input :model-value="authStore.userInfo?.username" disabled />
           </el-form-item>
-          <el-form-item label="昵称" prop="nickname">
-            <el-input v-model="profileForm.nickname" placeholder="请输入昵称" maxlength="32" />
+          <el-form-item label="姓名" prop="name">
+            <el-input v-model="profileForm.name" placeholder="请输入姓名" maxlength="32" />
           </el-form-item>
           <el-form-item label="头像">
             <div class="avatar-picker">
@@ -177,7 +177,7 @@ const forceReason = computed(() => {
 const pickerVisible = ref(false)
 
 const profileForm = reactive({
-  nickname: '',
+  name: '',
   avatar: '',
   gender: 0,
   phone: '',
@@ -191,7 +191,7 @@ function onAvatarPicked(files: FileItem[]) {
 }
 
 const profileRules: FormRules = {
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
   phone: [{
     validator: (_rule, value, callback) => {
       if (!value) return callback()
@@ -237,7 +237,7 @@ const pwdRules: FormRules = {
 function fillProfileForm() {
   const info = authStore.userInfo
   if (!info) return
-  profileForm.nickname = info.nickname || ''
+  profileForm.name = info.name || ''
   profileForm.avatar = info.avatar || ''
   profileForm.gender = info.gender ?? 0
   profileForm.phone = info.phone || ''
@@ -273,7 +273,7 @@ async function handleSubmit() {
     submitting.value = true
     try {
       await updateProfileApi({
-        nickname: profileForm.nickname,
+        name: profileForm.name,
         avatar: profileForm.avatar,
         gender: profileForm.gender,
         phone: profileForm.phone,

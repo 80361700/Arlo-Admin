@@ -175,7 +175,7 @@
               size="small"
               @close="removeSelectedUser(user.id)"
             >
-              {{ user.nickname || user.username }}
+              {{ user.name || user.username }}
             </el-tag>
           </div>
         </div>
@@ -195,7 +195,7 @@
       <div class="user-picker-toolbar">
         <el-input
           v-model="userQuery.keyword"
-          placeholder="搜索用户名/昵称"
+          placeholder="搜索用户名/姓名"
           clearable
           style="width: 200px"
           @keyup.enter="loadUserPicker"
@@ -229,7 +229,7 @@
         </el-table-column>
         <el-table-column prop="id" label="ID" width="70" align="center" />
         <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="nickname" label="昵称" width="120" />
+        <el-table-column prop="name" label="姓名" width="120" />
         <el-table-column prop="phone" label="手机号" width="120" />
         <el-table-column prop="deptName" label="部门" min-width="120" />
       </el-table>
@@ -503,7 +503,7 @@ async function loadUserPicker() {
     const params: any = { page: userQuery.page, pageSize: userQuery.pageSize }
     if (userQuery.keyword) {
       params.username = userQuery.keyword
-      params.nickname = userQuery.keyword
+      params.name = userQuery.keyword
     }
     const res = await getUserList(params)
     userPickerList.value = res.data.list || []

@@ -1,17 +1,73 @@
 <template>
   <div class="page-container">
+    <div class="filter-panel">
+      <div class="filter-header" @click="filterCollapsed = !filterCollapsed">
+        <el-icon class="filter-icon"><Filter /></el-icon>
+        <span>筛选</span>
+        <el-icon class="filter-arrow" :class="{ 'is-collapsed': filterCollapsed }">
+          <ArrowUp />
+        </el-icon>
+      </div>
+
+      <el-form
+        v-show="!filterCollapsed"
+        :model="searchForm"
+        class="filter-form"
+        label-position="right"
+        @submit.prevent="handleSearch"
+      >
+        <div class="filter-grid">
+          <el-form-item label="菜单名称：" class="filter-item">
+            <el-input
+              v-model="searchForm.name"
+              placeholder="请输入菜单名称"
+              clearable
+              style="width: 160px"
+            />
+          </el-form-item>
+          <el-form-item label="权限标识：" class="filter-item">
+            <el-input
+              v-model="searchForm.permission"
+              placeholder="请输入权限标识"
+              clearable
+              style="width: 160px"
+            />
+          </el-form-item>
+          <el-form-item label="状态：" class="filter-item">
+            <el-select
+              v-model="searchForm.status"
+              placeholder="请选择"
+              clearable
+              style="width: 160px"
+            >
+              <el-option label="启用" :value="1" />
+              <el-option label="禁用" :value="0" />
+            </el-select>
+          </el-form-item>
+          <div class="filter-actions">
+            <el-button type="primary" @click="handleSearch">查询</el-button>
+            <el-button @click="handleReset">重置</el-button>
+          </div>
+        </div>
+      </el-form>
+    </div>
+
     <div class="toolbar">
       <el-button v-permission="'sys:menu:add'" type="primary" @click="handleAdd()">新增菜单</el-button>
     </div>
 
     <el-table
+      :key="isSearching ? 'search' : 'tree'"
       ref="tableRef"
-      :data="tableRoots"
+      :data="displayData"
       row-key="id"
       border
-      lazy
+      :lazy="!isSearching"
       :load="loadTreeChildren"
-      :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
+      :default-expand-all="isSearching"
+      :tree-props="isSearching
+        ? { children: 'children' }
+        : { children: 'children', hasChildren: 'hasChildren' }"
       v-loading="loading"
     >
       <el-table-column prop="name" label="菜单名称" min-width="220" />
@@ -134,7 +190,7 @@
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { showRequestError } from '@/utils/requestError'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { ArrowDown, ArrowUp, Filter } from '@element-plus/icons-vue'
 import type { FormRules, TableInstance } from 'element-plus'
 import ProFormDialog from '@/components/ProFormDialog.vue'
 import IconPicker from '@/components/IconPicker.vue'
@@ -151,12 +207,71 @@ const typeTag: Record<number, 'success' | 'warning' | 'info' | 'primary' | 'dang
 
 const loading = ref(false)
 const tableRef = ref<TableInstance>()
+const filterCollapsed = ref(false)
 /** 完整菜单树（表单上级选择 / lazy 子节点来源） */
 const fullTree = ref<MenuTreeNode[]>([])
 /** 表格根节点（去掉 children，配合 lazy） */
 const tableRoots = ref<LazyMenuRow[]>([])
 
 type LazyMenuRow = Omit<MenuTreeNode, 'children'> & { hasChildren?: boolean }
+
+interface MenuSearchQuery {
+  name?: string
+  permission?: string
+  status?: number
+}
+
+const searchForm = reactive<MenuSearchQuery>({
+  name: undefined,
+  permission: undefined,
+  status: undefined,
+})
+/** 已生效的查询条件（点查询/重置后才更新） */
+const activeQuery = reactive<MenuSearchQuery>({
+  name: undefined,
+  permission: undefined,
+  status: undefined,
+})
+
+const isSearching = computed(() => {
+  const name = activeQuery.name?.trim()
+  const permission = activeQuery.permission?.trim()
+  return !!(name || permission || activeQuery.status === 0 || activeQuery.status === 1)
+})
+
+function includesIgnoreCase(haystack: string, needle: string) {
+  return haystack.toLowerCase().includes(needle.toLowerCase())
+}
+
+function matchNode(node: MenuTreeNode): boolean {
+  const name = activeQuery.name?.trim()
+  if (name && !includesIgnoreCase(node.name || '', name)) return false
+  const permission = activeQuery.permission?.trim()
+  if (permission && !includesIgnoreCase(node.permission || '', permission)) return false
+  if (activeQuery.status === 0 || activeQuery.status === 1) {
+    if (node.status !== activeQuery.status) return false
+  }
+  return true
+}
+
+/** 保留命中节点及其祖先，子树仍保持树形结构 */
+function filterMenuTree(nodes: MenuTreeNode[]): MenuTreeNode[] {
+  const result: MenuTreeNode[] = []
+  for (const node of nodes) {
+    const children = filterMenuTree(node.children || [])
+    if (matchNode(node) || children.length > 0) {
+      result.push({ ...node, children })
+    }
+  }
+  return result
+}
+
+const filteredTree = computed(() => {
+  if (!isSearching.value) return []
+  return filterMenuTree(fullTree.value)
+})
+
+const displayData = computed(() => (isSearching.value ? filteredTree.value : tableRoots.value))
 
 function toLazyRow(node: MenuTreeNode): LazyMenuRow {
   const hasKids = (node.children?.length ?? 0) > 0
@@ -175,6 +290,7 @@ function loadTreeChildren(
 
 /** 刷新已展开分支的 lazy 缓存，不重挂载表格，展开状态得以保留 */
 function syncLazyLoadedChildren() {
+  if (isSearching.value) return
   const table = tableRef.value as TableInstance & {
     store?: { states?: { lazyTreeNodeMap?: { value: Record<string, LazyMenuRow[]> } } }
     updateKeyChildren?: (key: string, data: LazyMenuRow[]) => void
@@ -185,6 +301,23 @@ function syncLazyLoadedChildren() {
     const node = findNode(fullTree.value, Number(key))
     table.updateKeyChildren(key, (node?.children || []).map(toLazyRow))
   }
+}
+
+function applySearchParams(p: MenuSearchQuery) {
+  activeQuery.name = p.name?.trim() || undefined
+  activeQuery.permission = p.permission?.trim() || undefined
+  activeQuery.status = p.status === 0 || p.status === 1 ? p.status : undefined
+}
+
+function handleSearch() {
+  applySearchParams(searchForm)
+}
+
+function handleReset() {
+  searchForm.name = undefined
+  searchForm.permission = undefined
+  searchForm.status = undefined
+  applySearchParams({})
 }
 
 async function loadData() {
@@ -369,6 +502,78 @@ onMounted(loadData)
 </script>
 
 <style scoped lang="scss">
+.filter-panel {
+  margin-bottom: 12px;
+  padding: 6px 16px 0;
+  background: var(--el-fill-color-light);
+}
+
+.filter-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: #409eff;
+  }
+}
+
+.filter-icon {
+  font-size: 14px;
+}
+
+.filter-arrow {
+  font-size: 12px;
+  transition: transform 0.2s ease;
+
+  &.is-collapsed {
+    transform: rotate(180deg);
+  }
+}
+
+.filter-form {
+  padding-bottom: 0;
+}
+
+.filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 8px;
+}
+
+.filter-item {
+  margin: 0 16px 12px 0;
+  width: auto;
+
+  :deep(.el-form-item__label) {
+    color: #606266;
+    font-weight: 400;
+    padding-right: 0;
+  }
+
+  :deep(.el-form-item__content) {
+    flex: none;
+  }
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px 0;
+
+  :deep(.el-button + .el-button) {
+    margin-left: 0;
+  }
+}
+
 .toolbar { margin-bottom: 12px; }
 .action-buttons {
   display: flex;

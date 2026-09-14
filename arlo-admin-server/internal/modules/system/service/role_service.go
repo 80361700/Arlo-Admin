@@ -68,9 +68,10 @@ func (s *RoleService) GetAll(ctx context.Context) ([]dto.RoleResponse, error) {
 	list := make([]dto.RoleResponse, 0, len(roles))
 	for i := range roles {
 		list = append(list, dto.RoleResponse{
-			ID:   roles[i].ID,
-			Name: roles[i].Name,
-			Code: roles[i].Code,
+			ID:     roles[i].ID,
+			Name:   roles[i].Name,
+			Code:   roles[i].Code,
+			Status: roles[i].Status,
 		})
 	}
 	return list, nil

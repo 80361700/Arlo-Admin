@@ -1,10 +1,8 @@
 # arlo-admin-web
 
-Arlo Admin 管理端前端：动态菜单、权限指令、通用表格/表单、主题切换等。
+**定位**：Arlo Admin 管理端。动态菜单、权限指令、通用表格/表单与主题；另含**工作流设计器与审批台**。能力说明见根目录 [README.md](../README.md)、[HANDOFF.md](../HANDOFF.md)。
 
 在线体验：[http://101.200.43.49/](http://101.200.43.49/)（`admin` / `admin123`）
-
-仓库总览见根目录 [README.md](../README.md)；架构细节见 [HANDOFF.md](../HANDOFF.md)。
 
 ## 技术栈
 
@@ -17,16 +15,15 @@ arlo-admin-web/
 ├── public/              # 静态资源（如默认 logo vite.svg）
 ├── src/
 │   ├── api/             # Axios 封装 + 各模块接口
-│   ├── components/      # ProTable / ProFormDialog / FilePicker …
-│   ├── composables/
-│   ├── directives/      # v-permission
+│   ├── components/      # ProTable / FilePicker / 业务组件…
 │   ├── layout/          # Sidebar / Navbar
 │   ├── router/
 │   ├── stores/          # auth / app / message
 │   ├── styles/          # 全局样式；主题外观在 styles/themes/
 │   ├── themes/          # 主题清单（id / label）
-│   ├── utils/
-│   └── views/           # 页面（现阶段多在 system/；新业务建议按域分目录）
+│   ├── types/
+│   ├── utils/           # 工具 + use* 组合式 + directives（v-permission）
+│   └── views/           # 页面（按业务域分目录）
 ├── .env.development
 ├── .env.production
 └── vite.config.ts

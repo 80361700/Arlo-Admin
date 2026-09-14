@@ -302,7 +302,7 @@ func (s *AuthService) GetUserInfo(ctx context.Context, userID uint64) (*dto.User
 	return &dto.UserInfoResponse{
 		ID:            user.ID,
 		Username:      user.Username,
-		Nickname:      user.Nickname,
+		Name:          user.Name,
 		Avatar:        user.Avatar,
 		Email:         user.Email,
 		Phone:         user.Phone,
@@ -330,7 +330,7 @@ func (s *AuthService) UpdateProfile(ctx context.Context, userID uint64, req *dto
 		}
 		return err
 	}
-	return s.userRepo.UpdateProfile(ctx, userID, req.Nickname, req.Gender, req.Phone, req.Email, req.Remark, req.Avatar)
+	return s.userRepo.UpdateProfile(ctx, userID, req.Name, req.Gender, req.Phone, req.Email, req.Remark, req.Avatar)
 }
 
 // ChangePassword 修改当前用户密码（需校验原密码）
@@ -424,8 +424,8 @@ func (s *AuthService) GetUserMenus(ctx context.Context, userID uint64) ([]*dto.M
 		return nil, err
 	}
 
-	// 补全父级目录：角色只勾了子菜单时，侧边栏仍需父级才能成树
-	allMenus, err := s.menuRepo.FindAllVisible(ctx)
+	// 补全父级目录：角色只勾了子菜单时，侧边栏仍需父级才能成树（含隐藏菜单的父级）
+	allMenus, err := s.menuRepo.FindAllEnabled(ctx)
 	if err != nil {
 		return nil, err
 	}

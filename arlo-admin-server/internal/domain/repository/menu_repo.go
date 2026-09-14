@@ -79,13 +79,23 @@ func (r *MenuRepository) FindMenusByRoleIDs(ctx context.Context, roleIDs []uint6
 		Table("sys_menu").
 		Select("DISTINCT sys_menu.*").
 		Joins("JOIN sys_role_menu ON sys_role_menu.menu_id = sys_menu.id").
-		Where("sys_role_menu.role_id IN ? AND sys_menu.status = 1 AND sys_menu.visible = 1", roleIDs).
+		Where("sys_role_menu.role_id IN ? AND sys_menu.status = 1", roleIDs).
 		Order("sys_menu.sort ASC").
 		Find(&menus).Error
 	if err != nil {
 		return nil, err
 	}
 	return menus, nil
+}
+
+// FindAllEnabled 查询全部启用菜单（含隐藏页，用于补全父级 / 隐藏路由）
+func (r *MenuRepository) FindAllEnabled(ctx context.Context) ([]*model.Menu, error) {
+	var menus []*model.Menu
+	err := r.db.WithContext(ctx).
+		Where("status = 1").
+		Order("sort ASC").
+		Find(&menus).Error
+	return menus, err
 }
 
 // FindAllVisible 查询全部启用且可见的菜单（用于补全父级目录）

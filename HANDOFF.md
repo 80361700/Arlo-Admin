@@ -2,7 +2,7 @@
 
 > 给后续开发（含 Cursor）用的框架说明。以**当前代码**为准；历史演进痕迹只保留约定，不鼓励大重构。
 
-**定位**：通用后台管理**底座**（权限 / 组织 / 日志 / 文件 / 配置 / 消息 / 监控），业务功能按模块增量扩展。
+**定位**：**审批流引擎** + **通用后台管理底座**。能力与截图见根 [README.md](./README.md)；下文为开发约定。
 
 ---
 
@@ -54,7 +54,9 @@ arlo-admin/
 │   │       ├── file/
 │   │       ├── member/          # 会员（部分能力仍为预留）
 │   │       ├── monitor/         # 在线用户 / 服务监控
-│   │       └── job/             # 定时任务 CRUD API（调度执行在 internal/job）
+│   │       ├── job/             # 定时任务 CRUD API（调度执行在 internal/job）
+│   │       ├── flow/            # ★ 工作流：定义 + 审批运行时 + engine
+│   │       └── demo/            # 演示业务（采购单绑流程）
 │   ├── pkg/                     # 框架级能力（无业务）
 │   │   ├── jwt / casbin / middleware / response / errors / logger
 │   │   ├── datascope / storage / excel / security / captcha
@@ -64,12 +66,14 @@ arlo-admin/
 │
 └── arlo-admin-web/
     └── src/
-        ├── api/modules/         # 与后端模块大致对应
-        ├── components/          # ProTable / ProFormDialog / RichEditor / FilePicker …
+        ├── api/modules/         # 与后端模块大致对应（含 flow / demo）
+        ├── components/          # ProTable / FilePicker / flowProcess / designer-extensions …
         ├── layout/              # Sidebar / Navbar
         ├── views/
         │   ├── login / dashboard / error
-        │   └── system/          # 现阶段管理页多挂于此；新业务建议 views/{业务域}/
+        │   ├── system/          # 系统管理页
+        │   ├── flow/            # 流程定义 / 表单 / 审批台 / 监控
+        │   └── business/        # 业务演示页
         ├── stores/              # auth / app / message
         ├── themes/ + styles/themes/  # 浅色 / 深色等主题
         └── router/
@@ -188,7 +192,7 @@ CORS → RequestID → RequestLogger → Recovery
 
 - **全新安装**：只执行 `001_baseline_v1.sql`（表结构 + 标准种子）
 - **后续变更**：追加 `002_*.sql` 起的增量补丁，序号递增、禁止复用
-- 旧迭代 `001`～`026` 已归档至 `migrations/archive/pre_v1/`，勿再对新库连跑
+- 旧迭代零散补丁已清理，勿再按历史序号连跑
 - 含中文 COMMENT 的 SQL：**必须**用 `utf8mb4` 客户端导入
 
 ### 4.2 核心表（基线 v1，共 22 张）
@@ -224,9 +228,41 @@ CORS → RequestID → RequestLogger → Recovery
 | file | 上传（MD5 去重）、列表、删除、下载；公开访问与 access_key |
 | member | 管理端会员列表等；**客户端密码/微信登录等仍为预留，勿当已闭环** |
 | monitor | 在线用户、强制下线、服务监控 |
-| job | 任务管理 API；执行引擎在 `internal/job`（如 `log_cleanup`） |
+| job | 任务管理 API；执行引擎在 `internal/job`（如 `log_cleanup`、`flow_tick`） |
+| flow | 流程/表单定义与历史版本；审批运行时（发起/待办/已办/抄送/认领/监控）；引擎见下节 |
+| demo | 采购单等演示单据，绑定 `process_id` 走审批 |
 
-前端对应页面目前多在 `views/system/`（含 monitor、member、message…）；**新业务域**建议新建 `views/{domain}/`，避免无限塞进 system。
+前端：系统类多在 `views/system/`；流程在 `views/flow/`；**新业务域**用 `views/{domain}/`，勿无限塞进 system。
+
+### 5.1 工作流
+
+能力表见根 [README.md](./README.md)#工作流审批。此处只记代码落点与扩展约定。
+
+**后端** `internal/modules/flow/`：
+
+| 路径 | 职责 |
+|------|------|
+| `engine/` | 推进、办理人解析、条件、延时/超时/提醒、加签减签转办抄送、子流程回写等（与 HTTP 解耦） |
+| `service/` + `handler/` + `routes.go` | 定义 CRUD、发起/办理 API、监控、委托；路由前缀 `/api/v1/flow/*`（JWT + Casbin） |
+| `repository/` + `model/` | 定义表、实例/任务/历史、评论、委托 |
+
+内置任务：`internal/job` 中 `flow_tick`（迁移 `011`），负责延时节点到期、审批超时自动通过/拒绝、提醒站内信。
+
+**前端**：
+
+| 路径 | 职责 |
+|------|------|
+| `views/flow/process`、`form` | 流程定义、表单模板 |
+| `views/flow/approve/*` | 发起 / 待办 / 已办 / 我的申请 / 抄送 / 认领 / 监控 |
+| `components/flowProcess/` | 流程节点画布与节点配置 |
+| `components/designer-extensions/` | 表单扩展控件（用户/部门/角色/字典/上传/富文本等） |
+| `api/modules/flow.ts` | 定义与审批接口 |
+
+菜单：一级「工作流」（定义 / 表单 / 监控）、「流程审批」（各办理列表）；权限码 `flow:*`。  
+业务挂审批：仿 `modules/demo`，单据存 `process_id`，发起走 `/flow/approve/launch`；详情深链为隐藏菜单 `225`。  
+表结构：已合入 `001_baseline`；从旧基线升级执行 `002_flow_approve_runtime.sql`（见 `migrations/README.md`）。
+
+当前运维动作以终止、退回、监控转办为主；跳转/唤醒/销毁等若需要再增量实现。
 
 ---
 
@@ -290,14 +326,15 @@ CORS → RequestID → RequestLogger → Recovery
 - [x] 在线用户 / 踢下线 / 服务监控 / 进程内定时任务
 - [x] 用户与登录日志 Excel 导入导出
 - [x] 前端动态路由、权限指令、通用 Pro 组件、主题
+- [x] **工作流审批**：设计器 + 运行时引擎 + 审批台/监控 + 业务绑流程演示
 
 ### 建议后续（非阻塞业务开发）
 
-1. 单元测试（优先 service）与 API 文档保持（已有 swag 草稿能力时按需生成）
+1. 单元测试（优先 `flow/engine`、approve service）与 API 文档按需用 swag 生成
 2. 会员客户端鉴权闭环（若真要做 C 端）
-3. 消息 WebSocket（当前未读角标为轮询）
-4. 生产加固：备份、监控告警、HTTPS；编排见仓库根 `deployments/README.md`
-5. 可选：新环境 schema 快照，减少从 001 起跑历史补丁
+3. 生产加固：备份、监控告警、HTTPS；编排见仓库根 `deployments/README.md`
+4. 可选：新环境 schema 快照，减少从 001 起跑历史补丁
+5. 流程侧按需补强：跳转/唤醒/销毁等运维动作（当前以终止、退回、监控转办为主）
 
 **不建议**：为「目录好看」强行大搬家 `domain`。
 
@@ -342,4 +379,6 @@ npm run dev
 | 改 JWT / Casbin / 数据权限 | `pkg/jwt` / `pkg/casbin` / `pkg/datascope` + `rbac_model.conf` |
 | 加管理页 | `views/{域}/` + `api/modules/`；菜单 `component` 勿带 `.vue` |
 | 改通用表格 / 筛选 | `components/ProTable.vue` |
+| 改流程引擎 / 审批 API | `modules/flow/engine`、`service`、`handler`；前端 `views/flow`、`api/modules/flow.ts` |
+| 业务流程绑定 | 仿 `modules/demo`；菜单与表迁移另开序号 |
 | 改主题 | `styles/themes/` + `stores/app` |

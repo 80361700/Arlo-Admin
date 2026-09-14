@@ -48,6 +48,41 @@ func (r *UserRepository) FindByID(ctx context.Context, id uint64) (*model.User, 
 	return &user, nil
 }
 
+// FindAll 查询全部用户（下拉选择等场景，按 id 升序）
+func (r *UserRepository) FindAll(ctx context.Context) ([]model.User, error) {
+	var users []model.User
+	err := r.db.WithContext(ctx).Order("id ASC").Find(&users).Error
+	return users, err
+}
+
+// UserContact 用户联系信息（部门负责人展示用）
+type UserContact struct {
+	Name  string
+	Phone string
+	Email string
+}
+
+// FindContactsByIDs 批量查询用户姓名与联系方式
+func (r *UserRepository) FindContactsByIDs(ctx context.Context, ids []uint64) (map[uint64]UserContact, error) {
+	result := make(map[uint64]UserContact)
+	if len(ids) == 0 {
+		return result, nil
+	}
+	var users []model.User
+	err := r.db.WithContext(ctx).Select("id", "name", "phone", "email").Where("id IN ?", ids).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range users {
+		result[u.ID] = UserContact{
+			Name:  u.Name,
+			Phone: u.Phone,
+			Email: u.Email,
+		}
+	}
+	return result, nil
+}
+
 func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*model.User, error) {
 	var user model.User
 	err := r.db.WithContext(ctx).Where("username = ?", username).First(&user).Error
@@ -89,14 +124,14 @@ func (r *UserRepository) UpdateLastLogin(ctx context.Context, userID uint64) err
 }
 
 // UpdateProfile 更新个人资料（不含角色/状态等管理字段；部门不可自改）
-func (r *UserRepository) UpdateProfile(ctx context.Context, userID uint64, nickname string, gender int8, phone, email, remark, avatar string) error {
+func (r *UserRepository) UpdateProfile(ctx context.Context, userID uint64, name string, gender int8, phone, email, remark, avatar string) error {
 	return r.db.WithContext(ctx).Model(&model.User{}).Where("id = ?", userID).Updates(map[string]interface{}{
-		"nickname": nickname,
-		"gender":   gender,
-		"phone":    phone,
-		"email":    email,
-		"remark":   remark,
-		"avatar":   avatar,
+		"name":   name,
+		"gender": gender,
+		"phone":  phone,
+		"email":  email,
+		"remark": remark,
+		"avatar": avatar,
 	}).Error
 }
 
@@ -126,7 +161,7 @@ func (r *UserRepository) FindPostNamesByUserID(ctx context.Context, userID uint6
 }
 
 // List 用户分页列表（支持多条件筛选 + 数据权限过滤）
-func (r *UserRepository) List(ctx context.Context, username, nickname, phone string, status *int8, deptID *uint64, scope *datascope.Provider, page, pageSize int) ([]model.User, int64, error) {
+func (r *UserRepository) List(ctx context.Context, username, name, phone string, status *int8, deptID *uint64, scope *datascope.Provider, page, pageSize int) ([]model.User, int64, error) {
 	var users []model.User
 	var total int64
 
@@ -145,8 +180,8 @@ func (r *UserRepository) List(ctx context.Context, username, nickname, phone str
 	if username != "" {
 		q = q.Where("username LIKE ?", "%"+username+"%")
 	}
-	if nickname != "" {
-		q = q.Where("nickname LIKE ?", "%"+nickname+"%")
+	if name != "" {
+		q = q.Where("name LIKE ?", "%"+name+"%")
 	}
 	if phone != "" {
 		q = q.Where("phone LIKE ?", "%"+phone+"%")

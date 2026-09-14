@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"strings"
 
 	"arlo-admin/internal/database"
 	"arlo-admin/internal/modules/file/model"
@@ -98,7 +99,7 @@ func (r *FileRepository) Delete(ctx context.Context, id uint64) error {
 }
 
 // List 分页查询
-func (r *FileRepository) List(ctx context.Context, name, mimeType, category string, isPublic *int8, scope *datascope.Provider, page, pageSize int) ([]model.SysFile, int64, error) {
+func (r *FileRepository) List(ctx context.Context, name, mimeType, category, excludeCategory string, isPublic *int8, scope *datascope.Provider, page, pageSize int) ([]model.SysFile, int64, error) {
 	var (
 		files []model.SysFile
 		total int64
@@ -114,8 +115,13 @@ func (r *FileRepository) List(ctx context.Context, name, mimeType, category stri
 	if mimeType != "" {
 		tx = tx.Where("mime_type LIKE ?", "%"+mimeType+"%")
 	}
-	if category != "" {
-		tx = tx.Where("category = ?", category)
+	if cats := splitCategories(category); len(cats) == 1 {
+		tx = tx.Where("category = ?", cats[0])
+	} else if len(cats) > 1 {
+		tx = tx.Where("category IN ?", cats)
+	}
+	if excludes := splitCategories(excludeCategory); len(excludes) > 0 {
+		tx = tx.Where("category NOT IN ?", excludes)
 	}
 	if isPublic != nil {
 		tx = tx.Where("is_public = ?", *isPublic)
@@ -131,4 +137,19 @@ func (r *FileRepository) List(ctx context.Context, name, mimeType, category stri
 	}
 
 	return files, total, nil
+}
+
+func splitCategories(raw string) []string {
+	if raw == "" {
+		return nil
+	}
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }

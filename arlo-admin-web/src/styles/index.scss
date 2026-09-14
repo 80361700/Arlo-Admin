@@ -26,6 +26,10 @@ html, body, #app {
   height: 1px !important;
 }
 
-.el-button {
-  border-radius: 0 !important;
+/* epic 预览/弹窗 append-to-body；覆盖默认 900px inline width */
+.el-overlay-dialog .ep-el-modal.el-dialog,
+.ep-el-modal.el-dialog {
+  --el-dialog-width: min(1200px, 92vw);
+  width: min(1200px, 92vw) !important;
+  max-width: 92vw !important;
 }

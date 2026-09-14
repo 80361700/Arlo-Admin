@@ -146,7 +146,7 @@ section "System/User 模块（6 端点）"
 check GET "/system/user/list?page=1&pageSize=5" "" "code"
 check GET "/system/user/1" "" "code"
 
-CREATE_USER_RESP=$(check POST "/system/user" '{"username":"testuser","password":"123456","nickname":"测试用户","deptId":1,"status":1,"roleIds":[2],"postIds":[]}' "code")
+CREATE_USER_RESP=$(check POST "/system/user" '{"username":"testuser","password":"123456","name":"测试用户","deptId":1,"status":1,"roleIds":[2],"postIds":[]}' "code")
 NEW_USER_ID=$(echo "$CREATE_USER_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('data',{}).get('id',''))" 2>/dev/null || echo "")
 
 if echo "$CREATE_USER_RESP" | python3 -c "import sys,json; j=json.load(sys.stdin); sys.exit(0 if j.get('code')==200 else 1)" 2>/dev/null; then
@@ -154,7 +154,7 @@ if echo "$CREATE_USER_RESP" | python3 -c "import sys,json; j=json.load(sys.stdin
     info "创建用户成功, ID=$NEW_USER_ID"
 
     if [ -n "$NEW_USER_ID" ] && [ "$NEW_USER_ID" != "None" ]; then
-        check PUT "/system/user" "{\"id\":$NEW_USER_ID,\"nickname\":\"测试用户-已更新\",\"deptId\":1,\"status\":1,\"roleIds\":[2],\"postIds\":[]}" "code"
+        check PUT "/system/user" "{\"id\":$NEW_USER_ID,\"name\":\"测试用户-已更新\",\"deptId\":1,\"status\":1,\"roleIds\":[2],\"postIds\":[]}" "code"
         check PUT "/system/user/password" "{\"id\":$NEW_USER_ID,\"password\":\"654321\"}" "code"
         check DELETE "/system/user/$NEW_USER_ID" "" "code"
     fi
@@ -167,6 +167,7 @@ section "System/Role 模块（8 端点）"
 
 check GET "/system/role/list?page=1&pageSize=10" "" "code"
 check GET "/system/role/all" "" "code"
+check GET "/system/user/all" "" "code"
 check GET "/system/role/1" "" "code"
 check GET "/system/role/1/menus" "" "code"
 
@@ -187,7 +188,7 @@ section "System/Dept 模块（4 端点）"
 
 check GET "/system/dept/tree" "" "code"
 
-CREATE_DEPT_RESP=$(check POST "/system/dept" '{"deptName":"测试部门","parentId":0,"sort":99,"leader":"","phone":"","email":"","status":1}' "code")
+CREATE_DEPT_RESP=$(check POST "/system/dept" '{"name":"测试部门","code":"TEST_DEPT","parentId":0,"sort":99,"leaderId":0,"remark":"","status":1}' "code")
 NEW_DEPT_ID=$(echo "$CREATE_DEPT_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('data',{}).get('id',''))" 2>/dev/null || echo "")
 
 if [ -n "$NEW_DEPT_ID" ] && [ "$NEW_DEPT_ID" != "None" ]; then

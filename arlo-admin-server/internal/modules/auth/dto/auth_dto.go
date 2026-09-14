@@ -44,7 +44,7 @@ type RefreshResponse struct {
 type UserInfoResponse struct {
 	ID          uint64   `json:"id" example:"1"`                   // 用户ID
 	Username    string   `json:"username" example:"admin"`         // 用户名
-	Nickname    string   `json:"nickname" example:"系统管理员"`         // 昵称
+	Name        string   `json:"name" example:"系统管理员"`            // 姓名
 	Avatar      string   `json:"avatar" example:"1"`               // 头像（站内文件 ID，或外链 URL）
 	Email       string   `json:"email" example:"admin@example.com"` // 邮箱
 	Phone       string   `json:"phone" example:"13800138000"`      // 手机号
@@ -64,12 +64,12 @@ type UserInfoResponse struct {
 
 // UpdateProfileRequest 更新个人资料请求（部门不可自改，仅展示）
 type UpdateProfileRequest struct {
-	Nickname string `json:"nickname" binding:"required,max=32" example:"张三"`
-	Gender   int8   `json:"gender" example:"1"`
-	Phone    string `json:"phone" example:"13800138000"`
-	Email    string `json:"email" example:"zhangsan@example.com"`
-	Remark   string `json:"remark" example:""`
-	Avatar   string `json:"avatar" example:""`
+	Name   string `json:"name" binding:"required,max=32" example:"张三"`
+	Gender int8   `json:"gender" example:"1"`
+	Phone  string `json:"phone" example:"13800138000"`
+	Email  string `json:"email" example:"zhangsan@example.com"`
+	Remark string `json:"remark" example:""`
+	Avatar string `json:"avatar" example:""`
 }
 
 // ChangePasswordRequest 修改本人密码请求

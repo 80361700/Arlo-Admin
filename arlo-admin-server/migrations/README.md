@@ -9,7 +9,7 @@ mysql --default-character-set=utf8mb4 -u root -p < 001_baseline_v1.sql
 ```
 
 - 文件：`001_baseline_v1.sql`
-- 内容：当前最终表结构 + 标准种子（admin / 菜单 / 字典 / 配置 / 定时任务等）
+- 内容：当前最终表结构 + 标准种子（含工作流定义/运行时、审批菜单、演示单据等）
 - 默认库名：`arlo_admin`
 - 默认账号：`admin` / `admin123`（以种子 bcrypt 为准）
 
@@ -26,17 +26,17 @@ mysql --default-character-set=utf8mb4 -u root -p < 001_baseline_v1.sql
 - 已有库只跑尚未执行的增量
 - 补丁尽量幂等
 
-当前最新增量序号：无（基线即为 v1 起点；下一份从 **002** 开始）。
+### 升级到当前审批能力（已跑过旧版 `001`）
 
-## 历史迭代
+原先分散的 `002`～`020` 已合并为**一份**：
 
-`001`～`026` 时代的零散补丁已归档到：
-
-```
-archive/pre_v1/
+```bash
+mysql --default-character-set=utf8mb4 -u root -p arlo_admin < 002_flow_approve_runtime.sql
 ```
 
-仅供对照，**新环境不要再按旧顺序执行**。
+- 含：运行时表、审批/监控/演示菜单、`flow_tick`、评论、委托、抄送 `read_at` 等
+- `001` 里已有的部门字段 / 流程定义与表单**不再重复**
+- 幂等，可重复执行；若库已逐条跑过旧 `009`～`020`，再跑本文件也安全
 
 ## 约定
 

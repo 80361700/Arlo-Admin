@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { useBreadcrumb, type BreadcrumbItem } from '@/composables/useBreadcrumb'
+import { useBreadcrumb, type BreadcrumbItem } from '@/utils/useBreadcrumb'
 
 const { items } = useBreadcrumb()
 

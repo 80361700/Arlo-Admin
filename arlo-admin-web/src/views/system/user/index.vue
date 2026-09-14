@@ -33,7 +33,7 @@
         </template>
       </el-table-column>
       <el-table-column prop="username" label="用户名" min-width="120" />
-      <el-table-column prop="nickname" label="昵称" min-width="120" />
+      <el-table-column prop="name" label="姓名" min-width="120" />
       <el-table-column label="性别" width="80" align="center">
         <template #default="{ row }">
           {{ genderLabel(row.gender) }}
@@ -93,8 +93,8 @@
         <el-form-item label="密码" prop="password" v-if="!isEdit">
           <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password maxlength="32" />
         </el-form-item>
-        <el-form-item label="昵称" prop="nickname">
-          <el-input v-model="form.nickname" placeholder="请输入昵称" maxlength="32" />
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="form.name" placeholder="请输入姓名" maxlength="32" />
         </el-form-item>
         <el-form-item label="头像">
           <div class="avatar-picker">
@@ -212,7 +212,7 @@ const query = reactive<UserListParams>({ page: 1, pageSize: 10 })
 
 const searchFields = computed(() => [
   { prop: 'username', label: '用户名' },
-  { prop: 'nickname', label: '昵称' },
+  { prop: 'name', label: '姓名' },
   { prop: 'phone', label: '手机号' },
   {
     prop: 'status', label: '状态', type: 'select' as const,
@@ -254,7 +254,7 @@ const formDialogRef = ref()
 
 const defaultForm = {
   id: 0 as number,
-  username: '', password: '', nickname: '', avatar: '', gender: 0 as number,
+  username: '', password: '', name: '', avatar: '', gender: 0 as number,
   deptId: undefined as number | undefined, phone: '', email: '',
   status: 1 as number, remark: '', roleIds: [] as number[], postIds: [] as number[],
 }
@@ -268,7 +268,7 @@ function onAvatarPicked(files: FileItem[]) {
 const formRules: FormRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
 }
 
 function handleAdd() {
@@ -288,7 +288,7 @@ async function handleEdit(row: UserItem) {
       id: u.id,
       username: u.username,
       password: '',
-      nickname: u.nickname,
+      name: u.name,
       avatar: u.avatar || '',
       gender: u.gender,
       deptId: u.deptId,
@@ -311,7 +311,7 @@ async function handleSubmit() {
     if (isEdit.value) {
       await updateUser({
         id: form.id,
-        nickname: form.nickname,
+        name: form.name,
         avatar: form.avatar,
         gender: form.gender,
         deptId: form.deptId,
@@ -327,7 +327,7 @@ async function handleSubmit() {
       await createUser({
         ...form,
         username: form.username.trim(),
-        nickname: form.nickname.trim(),
+        name: form.name.trim(),
         avatar: form.avatar,
       })
       ElMessage.success('新增成功')
@@ -406,7 +406,7 @@ async function handleExport() {
   try {
     await exportUsers({
       username: query.username,
-      nickname: query.nickname,
+      name: query.name,
       phone: query.phone,
       status: query.status,
       deptId: query.deptId,

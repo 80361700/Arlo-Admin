@@ -221,7 +221,7 @@ func (s *FileService) Delete(ctx context.Context, id uint64) error {
 func (s *FileService) List(ctx context.Context, req *dto.FileListQuery, currentUserID uint64) (*dto.FileListResponse, error) {
 	req.SetDefaults()
 	scope, _ := datascope.BuildFromDB(ctx, database.DB, currentUserID)
-	files, total, err := s.repo.List(ctx, req.Name, req.MimeType, req.Category, req.IsPublic, scope, req.Page, req.PageSize)
+	files, total, err := s.repo.List(ctx, req.Name, req.MimeType, req.Category, req.ExcludeCategory, req.IsPublic, scope, req.Page, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

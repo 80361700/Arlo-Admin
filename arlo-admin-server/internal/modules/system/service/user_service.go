@@ -52,7 +52,7 @@ func (s *UserService) List(ctx context.Context, req *dto.UserListRequest, curren
 	// 构建数据权限过滤器
 	scope, _ := s.buildDataScope(ctx, currentUserID)
 
-	users, total, err := s.userRepo.List(ctx, req.Username, req.Nickname, req.Phone, req.Status, req.DeptID, scope, req.Page, req.PageSize)
+	users, total, err := s.userRepo.List(ctx, req.Username, req.Name, req.Phone, req.Status, req.DeptID, scope, req.Page, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (s *UserService) List(ctx context.Context, req *dto.UserListRequest, curren
 			list = append(list, dto.UserResponse{
 				ID:        u.ID,
 				Username:  u.Username,
-				Nickname:  u.Nickname,
+				Name:      u.Name,
 				Avatar:    u.Avatar,
 				Email:     u.Email,
 				Phone:     u.Phone,
@@ -107,6 +107,24 @@ func (s *UserService) List(ctx context.Context, req *dto.UserListRequest, curren
 		}
 	}
 	return &dto.PageResponse{List: list, Total: total, Page: req.Page, PageSize: req.PageSize}, nil
+}
+
+// GetAll 获取全部用户（下拉选择等场景）
+func (s *UserService) GetAll(ctx context.Context) ([]dto.UserOption, error) {
+	users, err := s.userRepo.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	list := make([]dto.UserOption, 0, len(users))
+	for _, u := range users {
+		list = append(list, dto.UserOption{
+			ID:       u.ID,
+			Username: u.Username,
+			Name:     u.Name,
+			Status:   u.Status,
+		})
+	}
+	return list, nil
 }
 
 // GetDetail 获取用户详情
@@ -141,7 +159,7 @@ func (s *UserService) GetDetail(ctx context.Context, id uint64) (*dto.UserRespon
 	return &dto.UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
-		Nickname:  user.Nickname,
+		Name:      user.Name,
 		Avatar:    user.Avatar,
 		Email:     user.Email,
 		Phone:     user.Phone,
@@ -161,7 +179,7 @@ func (s *UserService) GetDetail(ctx context.Context, id uint64) (*dto.UserRespon
 // Create 创建用户
 func (s *UserService) Create(ctx context.Context, req *dto.CreateUserRequest) error {
 	req.Username = strings.TrimSpace(req.Username)
-	req.Nickname = strings.TrimSpace(req.Nickname)
+	req.Name = strings.TrimSpace(req.Name)
 	if req.Username == "" {
 		return perrors.New(perrors.BadRequest, "用户名不能为空")
 	}
@@ -183,7 +201,7 @@ func (s *UserService) Create(ctx context.Context, req *dto.CreateUserRequest) er
 	user := &model.User{
 		Username:      req.Username,
 		Password:      string(hashed),
-		Nickname:      req.Nickname,
+		Name:          req.Name,
 		Avatar:        req.Avatar,
 		Email:         req.Email,
 		Phone:         req.Phone,
@@ -226,7 +244,7 @@ func (s *UserService) Update(ctx context.Context, req *dto.UpdateUserRequest) er
 	if exists {
 		return perrors.New(perrors.ErrUserExists, "用户名重复")
 	}
-	user.Nickname = req.Nickname
+	user.Name = req.Name
 	user.Avatar = req.Avatar
 	user.Email = req.Email
 	user.Phone = req.Phone

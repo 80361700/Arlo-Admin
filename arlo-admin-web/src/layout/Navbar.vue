@@ -104,7 +104,7 @@
       <el-dropdown trigger="hover" @command="handleCommand">
         <div class="user-info">
           <el-avatar :size="28" :src="avatarSrc || undefined" :icon="UserFilled" />
-          <span class="username">{{ authStore.userInfo?.nickname || '用户' }}</span>
+          <span class="username">{{ authStore.userInfo?.name || '用户' }}</span>
           <el-icon class="arrow"><ArrowDown /></el-icon>
         </div>
         <template #dropdown>
@@ -132,7 +132,7 @@ import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { useMessageStore } from '@/stores/message'
 import { resetDynamicRoutes } from '@/router'
-import { useAuthFileSrc } from '@/composables/useAuthFileSrc'
+import { useAuthFileSrc } from '@/utils/useAuthFileSrc'
 import {
   getTopLevelMenus,
   resolveTopMenu,
