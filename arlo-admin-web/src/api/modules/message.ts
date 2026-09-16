@@ -23,8 +23,12 @@ export interface MessagePageResult {
 }
 
 export interface MessageListQuery {
+  title?: string
+  type?: number
   isRead?: number
   direction?: number  // 0=全部 1=我收到的 2=我发送的
+  beginTime?: string
+  endTime?: string
   page: number
   pageSize: number
 }

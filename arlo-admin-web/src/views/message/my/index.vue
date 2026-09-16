@@ -319,6 +319,19 @@ const receivedLoading = ref(false)
 const receivedTotal = ref(0)
 const receivedQuery = reactive<MessageListQuery>({ page: 1, pageSize: 10, direction: 1 })
 
+function applyReceivedSearch(p: any) {
+  receivedQuery.title = p.title?.trim() || undefined
+  receivedQuery.type = p.type !== undefined && p.type !== '' ? Number(p.type) : undefined
+  receivedQuery.isRead = p.isRead !== undefined && p.isRead !== '' ? Number(p.isRead) : undefined
+  if (Array.isArray(p.timeRange) && p.timeRange.length === 2) {
+    receivedQuery.beginTime = p.timeRange[0]
+    receivedQuery.endTime = p.timeRange[1]
+  } else {
+    receivedQuery.beginTime = undefined
+    receivedQuery.endTime = undefined
+  }
+}
+
 async function loadReceivedData() {
   receivedLoading.value = true
   try {
@@ -332,18 +345,27 @@ async function loadReceivedData() {
 
 function handleReceivedSearch(p: any) {
   receivedQuery.page = 1
-  Object.assign(receivedQuery, p)
+  applyReceivedSearch(p)
   loadReceivedData()
 }
 
 function handleReceivedReset() {
-  receivedQuery.page = 1
-  receivedQuery.isRead = undefined
+  Object.assign(receivedQuery, {
+    page: 1,
+    pageSize: 10,
+    direction: 1,
+    title: undefined,
+    type: undefined,
+    isRead: undefined,
+    beginTime: undefined,
+    endTime: undefined,
+  })
   loadReceivedData()
 }
 
 function handleReceivedPageChange(p: any) {
-  Object.assign(receivedQuery, p)
+  receivedQuery.page = p.page
+  receivedQuery.pageSize = p.pageSize
   loadReceivedData()
 }
 
@@ -352,6 +374,18 @@ const sentTableData = ref<MessageItem[]>([])
 const sentLoading = ref(false)
 const sentTotal = ref(0)
 const sentQuery = reactive<MessageListQuery>({ page: 1, pageSize: 10, direction: 2 })
+
+function applySentSearch(p: any) {
+  sentQuery.title = p.title?.trim() || undefined
+  sentQuery.type = p.type !== undefined && p.type !== '' ? Number(p.type) : undefined
+  if (Array.isArray(p.timeRange) && p.timeRange.length === 2) {
+    sentQuery.beginTime = p.timeRange[0]
+    sentQuery.endTime = p.timeRange[1]
+  } else {
+    sentQuery.beginTime = undefined
+    sentQuery.endTime = undefined
+  }
+}
 
 async function loadSentData() {
   sentLoading.value = true
@@ -366,33 +400,62 @@ async function loadSentData() {
 
 function handleSentSearch(p: any) {
   sentQuery.page = 1
-  Object.assign(sentQuery, p)
+  applySentSearch(p)
   loadSentData()
 }
 
 function handleSentReset() {
-  sentQuery.page = 1
+  Object.assign(sentQuery, {
+    page: 1,
+    pageSize: 10,
+    direction: 2,
+    title: undefined,
+    type: undefined,
+    beginTime: undefined,
+    endTime: undefined,
+  })
   loadSentData()
 }
 
 function handleSentPageChange(p: any) {
-  Object.assign(sentQuery, p)
+  sentQuery.page = p.page
+  sentQuery.pageSize = p.pageSize
   loadSentData()
 }
 
 // ==================== Tabs ====================
 const activeTab = ref<'received' | 'sent'>('received')
 
-const receivedSearchFields = [
+const receivedSearchFields = computed(() => [
+  { prop: 'title', label: '标题', placeholder: '请输入标题' },
   {
-    prop: 'isRead', label: '状态', type: 'select' as const,
+    prop: 'type',
+    label: '类型',
+    type: 'select' as const,
+    options: messageTypeOptions.value,
+  },
+  {
+    prop: 'isRead',
+    label: '状态',
+    type: 'select' as const,
     options: [
       { label: '未读', value: 0 },
       { label: '已读', value: 1 },
     ],
   },
-]
-const sentSearchFields: any[] = [] // 发送记录不需要搜索字段
+  { prop: 'timeRange', label: '发送时间', type: 'datetimerange' as const },
+])
+
+const sentSearchFields = computed(() => [
+  { prop: 'title', label: '标题', placeholder: '请输入标题' },
+  {
+    prop: 'type',
+    label: '类型',
+    type: 'select' as const,
+    options: messageTypeOptions.value,
+  },
+  { prop: 'timeRange', label: '发送时间', type: 'datetimerange' as const },
+])
 
 function onTabChange() {
   if (activeTab.value === 'received') {

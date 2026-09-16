@@ -33,10 +33,6 @@ watch(model, (v) => emit('change', v ?? ''))
 <style scoped>
 .arlo-rich-editor {
   width: 100%;
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  overflow: hidden;
-  background: #fff;
 }
 .arlo-rich-editor.is-disabled {
   pointer-events: none;

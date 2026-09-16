@@ -59,7 +59,7 @@
         <el-button v-permission="'sys:user:edit'" type="primary" link size="small" @click="handleEdit(row)">编辑</el-button>
         <el-button v-permission="'sys:user:edit'" type="warning" link size="small" @click="handleResetPwd(row)">重置密码</el-button>
         <el-dropdown
-          v-if="authStore.hasPermission('sys:user:delete') || authStore.hasPermission('sys:user:unlock')"
+          v-if="(authStore.hasPermission('sys:user:delete') && !isBuiltInAdmin(row)) || authStore.hasPermission('sys:user:unlock')"
           trigger="click"
           @command="(cmd: string) => handleAction(row, cmd)"
         >
@@ -69,7 +69,11 @@
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item v-if="authStore.hasPermission('sys:user:unlock')" command="unlock">解锁</el-dropdown-item>
-              <el-dropdown-item v-if="authStore.hasPermission('sys:user:delete')" command="delete" divided>删除</el-dropdown-item>
+              <el-dropdown-item
+                v-if="authStore.hasPermission('sys:user:delete') && !isBuiltInAdmin(row)"
+                command="delete"
+                divided
+              >删除</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -128,7 +132,7 @@
           <el-input v-model="form.email" placeholder="请输入邮箱" maxlength="64" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-radio-group v-model="form.status">
+          <el-radio-group v-model="form.status" :disabled="isEdit && isBuiltInAdmin(form)">
             <el-radio v-for="opt in statusOptions" :key="String(opt.value)" :value="opt.value">
               {{ opt.label }}
             </el-radio>
@@ -136,7 +140,12 @@
         </el-form-item>
         <el-form-item label="角色">
           <el-checkbox-group v-model="form.roleIds">
-            <el-checkbox v-for="r in roleList" :key="r.id" :value="r.id">
+            <el-checkbox
+              v-for="r in roleList"
+              :key="r.id"
+              :value="r.id"
+              :disabled="isEdit && isBuiltInAdmin(form) && r.code === 'super_admin'"
+            >
               {{ r.name }}
             </el-checkbox>
           </el-checkbox-group>
@@ -260,6 +269,12 @@ const defaultForm = {
 }
 const form = reactive({ ...defaultForm })
 const pickerVisible = ref(false)
+
+/** 内置超级管理员（id=1 或 username=admin）不可删除/禁用 */
+function isBuiltInAdmin(u: { id?: number; username?: string } | null | undefined) {
+  if (!u) return false
+  return u.id === 1 || u.username === 'admin'
+}
 
 function onAvatarPicked(files: FileItem[]) {
   if (!files.length) return

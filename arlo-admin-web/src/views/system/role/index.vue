@@ -38,7 +38,7 @@
         <el-button v-permission="'sys:role:edit'" type="primary" link size="small" @click="handleEdit(row)">编辑</el-button>
         <el-button v-permission="'sys:role:edit'" type="success" link size="small" @click="handleAssignMenus(row)">分配菜单</el-button>
         <el-dropdown
-          v-if="authStore.hasPermission('sys:role:edit') || authStore.hasPermission('sys:role:delete')"
+          v-if="authStore.hasPermission('sys:role:edit') || (authStore.hasPermission('sys:role:delete') && !isSuperAdminRole(row))"
           trigger="click"
           @command="(cmd: string) => handleAction(row, cmd)"
         >
@@ -47,7 +47,10 @@
           </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item v-if="authStore.hasPermission('sys:role:delete')" command="delete">删除</el-dropdown-item>
+              <el-dropdown-item
+                v-if="authStore.hasPermission('sys:role:delete') && !isSuperAdminRole(row)"
+                command="delete"
+              >删除</el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>
@@ -69,13 +72,18 @@
           <el-input v-model="form.name" placeholder="请输入角色名称" maxlength="32" />
         </el-form-item>
         <el-form-item label="角色编码" prop="code">
-          <el-input v-model="form.code" placeholder="请输入角色编码" maxlength="32" />
+          <el-input
+            v-model="form.code"
+            placeholder="请输入角色编码"
+            maxlength="32"
+            :disabled="isEdit && isSuperAdminRole(form)"
+          />
         </el-form-item>
         <el-form-item label="排序">
           <el-input-number v-model="form.sort" :min="0" :max="999" />
         </el-form-item>
         <el-form-item label="状态">
-          <el-radio-group v-model="form.status">
+          <el-radio-group v-model="form.status" :disabled="isEdit && isSuperAdminRole(form)">
             <el-radio v-for="opt in statusOptions" :key="String(opt.value)" :value="opt.value">
               {{ opt.label }}
             </el-radio>
@@ -140,6 +148,11 @@ import { useDict, DictCode } from '@/utils/useDict'
 
 const authStore = useAuthStore()
 const { options: statusOptions, getLabel: statusLabel } = useDict(DictCode.UserStatus)
+
+/** 内置超级管理员角色不可删除/禁用/改编码 */
+function isSuperAdminRole(r: { code?: string } | null | undefined) {
+  return !!r && r.code === 'super_admin'
+}
 
 // ==================== 查询 ====================
 const proTableRef = ref()
