@@ -90,13 +90,21 @@ func (s *MessageService) Delete(ctx context.Context, id uint64, userID uint64, s
 
 // List 分页查询消息
 func (s *MessageService) List(ctx context.Context, userID uint64, req *dto.MessageListQuery) (*dto.MessageListResponse, error) {
+	filter := repository.MessageListFilter{
+		Title:     req.Title,
+		Type:      req.Type,
+		IsRead:    req.IsRead,
+		Direction: req.Direction,
+		BeginTime: req.BeginTime,
+		EndTime:   req.EndTime,
+	}
 	// 发送记录使用聚合查询（按消息分组，显示 receiverCount）
 	if req.Direction != nil && *req.Direction == 2 {
-		return s.listSentMessages(ctx, userID, req)
+		return s.listSentMessages(ctx, userID, req, filter)
 	}
 
 	// 我的消息：正常查询
-	msgs, total, err := s.repo.List(ctx, userID, req.IsRead, req.Direction, req.Page, req.PageSize)
+	msgs, total, err := s.repo.List(ctx, userID, filter, req.Page, req.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +121,9 @@ func (s *MessageService) List(ctx context.Context, userID uint64, req *dto.Messa
 }
 
 // listSentMessages 发送记录聚合查询（按数据权限过滤）
-func (s *MessageService) listSentMessages(ctx context.Context, userID uint64, req *dto.MessageListQuery) (*dto.MessageListResponse, error) {
+func (s *MessageService) listSentMessages(ctx context.Context, userID uint64, req *dto.MessageListQuery, filter repository.MessageListFilter) (*dto.MessageListResponse, error) {
 	scope, _ := datascope.BuildFromDB(ctx, database.DB, userID)
-	msgs, total, err := s.repo.ListSent(ctx, userID, scope, req.Page, req.PageSize)
+	msgs, total, err := s.repo.ListSent(ctx, userID, scope, filter, req.Page, req.PageSize)
 	if err != nil {
 		return nil, err
 	}

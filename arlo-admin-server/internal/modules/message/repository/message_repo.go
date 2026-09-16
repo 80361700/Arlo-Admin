@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"arlo-admin/internal/database"
@@ -202,15 +203,25 @@ func (r *MessageRepository) FindByID(ctx context.Context, id uint64) (*model.Mes
 	return &msg, nil
 }
 
-func (r *MessageRepository) List(ctx context.Context, userID uint64, isRead *int8, direction *int8, page, pageSize int) ([]model.Message, int64, error) {
+// MessageListFilter 列表筛选（我的消息 / 发送记录共用）
+type MessageListFilter struct {
+	Title     string
+	Type      *int8
+	IsRead    *int8
+	Direction *int8
+	BeginTime string
+	EndTime   string
+}
+
+func (r *MessageRepository) List(ctx context.Context, userID uint64, f MessageListFilter, page, pageSize int) ([]model.Message, int64, error) {
 	var msgs []model.Message
 	var total int64
 
 	q := r.db.WithContext(ctx).Model(&model.Message{}).Where("deleted_at IS NULL")
 
 	// direction: 0=全部 1=我收到的 2=我发送的
-	if direction != nil {
-		switch *direction {
+	if f.Direction != nil {
+		switch *f.Direction {
 		case 1:
 			// 我的消息：指定给我且未删，或广播且未个人隐藏
 			q = q.Where(`(
@@ -243,8 +254,8 @@ func (r *MessageRepository) List(ctx context.Context, userID uint64, isRead *int
 		)`, userID, userID, userID)
 	}
 
-	if isRead != nil {
-		if *isRead == 1 {
+	if f.IsRead != nil {
+		if *f.IsRead == 1 {
 			q = q.Where(`(
 				(receiver_id = ? AND is_read = 1) OR
 				(receiver_id = 0 AND EXISTS (
@@ -262,6 +273,7 @@ func (r *MessageRepository) List(ctx context.Context, userID uint64, isRead *int
 			)`, userID, userID)
 		}
 	}
+	q = applyMessageContentFilter(q, f)
 
 	if err := q.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -277,6 +289,46 @@ func (r *MessageRepository) List(ctx context.Context, userID uint64, isRead *int
 	}
 
 	return msgs, total, nil
+}
+
+func applyMessageContentFilter(q *gorm.DB, f MessageListFilter) *gorm.DB {
+	title := strings.TrimSpace(f.Title)
+	if title != "" {
+		q = q.Where("title LIKE ?", "%"+title+"%")
+	}
+	if f.Type != nil && *f.Type > 0 {
+		q = q.Where("type = ?", *f.Type)
+	}
+	if begin := strings.TrimSpace(f.BeginTime); begin != "" {
+		q = q.Where("created_at >= ?", begin)
+	}
+	if end := strings.TrimSpace(f.EndTime); end != "" {
+		q = q.Where("created_at <= ?", end)
+	}
+	return q
+}
+
+func messageContentFilterSQL(f MessageListFilter) (string, []interface{}) {
+	var b strings.Builder
+	var args []interface{}
+	title := strings.TrimSpace(f.Title)
+	if title != "" {
+		b.WriteString(" AND title LIKE ?")
+		args = append(args, "%"+title+"%")
+	}
+	if f.Type != nil && *f.Type > 0 {
+		b.WriteString(" AND type = ?")
+		args = append(args, *f.Type)
+	}
+	if begin := strings.TrimSpace(f.BeginTime); begin != "" {
+		b.WriteString(" AND created_at >= ?")
+		args = append(args, begin)
+	}
+	if end := strings.TrimSpace(f.EndTime); end != "" {
+		b.WriteString(" AND created_at <= ?")
+		args = append(args, end)
+	}
+	return b.String(), args
 }
 
 func (r *MessageRepository) overlayBroadcastRead(ctx context.Context, userID uint64, msgs []model.Message) error {
@@ -315,11 +367,13 @@ func (r *MessageRepository) overlayBroadcastRead(ctx context.Context, userID uin
 	return nil
 }
 
-func (r *MessageRepository) ListSent(ctx context.Context, userID uint64, scope *datascope.Provider, page, pageSize int) ([]model.Message, int64, error) {
+func (r *MessageRepository) ListSent(ctx context.Context, userID uint64, scope *datascope.Provider, f MessageListFilter, page, pageSize int) ([]model.Message, int64, error) {
 	var msgs []model.Message
 	var total int64
 
 	senderFilter, args := buildSenderFilterSQL(scope, userID)
+	extraSQL, extraArgs := messageContentFilterSQL(f)
+	args = append(args, extraArgs...)
 	listArgs := append(append([]interface{}{}, args...), pageSize, (page-1)*pageSize)
 
 	err := r.db.WithContext(ctx).Raw(`
@@ -336,7 +390,7 @@ func (r *MessageRepository) ListSent(ctx context.Context, userID uint64, scope *
 			MAX(created_at) AS created_at,
 			COUNT(*) AS receiver_count
 		FROM sys_message
-		WHERE `+senderFilter+` AND deleted_at IS NULL AND sender_deleted = 0
+		WHERE `+senderFilter+` AND deleted_at IS NULL AND sender_deleted = 0`+extraSQL+`
 		GROUP BY sender_id, title, content, type, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i')
 		ORDER BY MAX(created_at) DESC
 		LIMIT ? OFFSET ?
@@ -349,7 +403,7 @@ func (r *MessageRepository) ListSent(ctx context.Context, userID uint64, scope *
 		SELECT COUNT(*) FROM (
 			SELECT 1
 			FROM sys_message
-			WHERE `+senderFilter+` AND deleted_at IS NULL AND sender_deleted = 0
+			WHERE `+senderFilter+` AND deleted_at IS NULL AND sender_deleted = 0`+extraSQL+`
 			GROUP BY sender_id, title, content, type, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i')
 		) t
 	`, args...).Scan(&total).Error

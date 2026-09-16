@@ -36,6 +36,7 @@ const (
 	ErrDictTypeExists    = 2005
 	ErrHasChildren       = 2006
 	ErrRoleAssigned      = 2007
+	ErrBuiltinProtected  = 2008 // 内置超管/超管角色不可删改关键项
 )
 
 // 日志模块 [3000-3999]
@@ -101,6 +102,7 @@ var errorMessages = map[int]string{
 	ErrMenuExists:    "菜单已存在",
 	ErrHasChildren:   "存在子节点，无法删除",
 	ErrRoleAssigned:  "角色已被分配，无法删除",
+	ErrBuiltinProtected: "内置超级管理员不可操作",
 	ErrCodeSendFailed: "验证码发送失败",
 	ErrCodeInvalid:    "验证码错误",
 	ErrMemberDisabled: "账号已被禁用",

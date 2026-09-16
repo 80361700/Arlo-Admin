@@ -19,6 +19,17 @@ import (
 	"gorm.io/gorm"
 )
 
+// 内置超级管理员（种子数据 id=1 / username=admin），开源演示环境不可删除或禁用。
+const builtInAdminUserID uint64 = 1
+const superAdminRoleCode = "super_admin"
+
+func isBuiltInAdmin(user *model.User) bool {
+	if user == nil {
+		return false
+	}
+	return user.ID == builtInAdminUserID || user.Username == "admin"
+}
+
 // UserService 用户管理服务
 type UserService struct {
 	userRepo  *repository.UserRepository
@@ -237,6 +248,14 @@ func (s *UserService) Update(ctx context.Context, req *dto.UpdateUserRequest) er
 		}
 		return err
 	}
+	if isBuiltInAdmin(user) {
+		if req.Status != 1 {
+			return perrors.New(perrors.ErrBuiltinProtected, "不允许禁用内置超级管理员")
+		}
+		if err := s.ensureHasSuperAdminRole(ctx, req.RoleIDs); err != nil {
+			return err
+		}
+	}
 	exists, err := s.userRepo.ExistsByUsername(ctx, user.Username, req.ID)
 	if err != nil {
 		return err
@@ -267,18 +286,38 @@ func (s *UserService) Update(ctx context.Context, req *dto.UpdateUserRequest) er
 
 // Delete 删除用户
 func (s *UserService) Delete(ctx context.Context, id uint64) error {
-	_, err := s.userRepo.FindByID(ctx, id)
+	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return perrors.New(perrors.ErrUserNotFound, "用户不存在")
 		}
 		return err
 	}
+	if isBuiltInAdmin(user) {
+		return perrors.New(perrors.ErrBuiltinProtected, "不允许删除内置超级管理员")
+	}
 	if err := s.userRepo.Delete(ctx, id); err != nil {
 		return err
 	}
 	s.reloadPolicies(ctx)
 	return nil
+}
+
+// ensureHasSuperAdminRole 校验角色列表中必须包含超级管理员角色
+func (s *UserService) ensureHasSuperAdminRole(ctx context.Context, roleIDs []uint64) error {
+	superRole, err := s.roleRepo.FindByCode(ctx, superAdminRoleCode)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return perrors.New(perrors.ErrBuiltinProtected, "超级管理员角色不存在")
+		}
+		return err
+	}
+	for _, id := range roleIDs {
+		if id == superRole.ID {
+			return nil
+		}
+	}
+	return perrors.New(perrors.ErrBuiltinProtected, "内置超级管理员必须保留超级管理员角色")
 }
 
 func (s *UserService) reloadPolicies(ctx context.Context) {

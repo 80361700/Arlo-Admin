@@ -49,6 +49,16 @@ func (r *RoleRepository) FindByID(ctx context.Context, id uint64) (*model.Role, 
 	return &role, nil
 }
 
+// FindByCode 按角色编码查询（含禁用）
+func (r *RoleRepository) FindByCode(ctx context.Context, code string) (*model.Role, error) {
+	var role model.Role
+	err := r.db.WithContext(ctx).Where("code = ?", code).First(&role).Error
+	if err != nil {
+		return nil, err
+	}
+	return &role, nil
+}
+
 func (r *RoleRepository) FindAll(ctx context.Context) ([]model.Role, error) {
 	var roles []model.Role
 	err := r.db.WithContext(ctx).Order("sort ASC, id ASC").Find(&roles).Error

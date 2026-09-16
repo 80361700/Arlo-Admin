@@ -14,6 +14,12 @@ import (
 	"gorm.io/gorm"
 )
 
+const superAdminRoleCode = "super_admin"
+
+func isSuperAdminRole(role *model.Role) bool {
+	return role != nil && role.Code == superAdminRoleCode
+}
+
 // RoleService 角色管理服务
 type RoleService struct {
 	roleRepo *repository.RoleRepository
@@ -152,6 +158,14 @@ func (s *RoleService) Update(ctx context.Context, req *dto.UpdateRoleRequest) er
 		}
 		return err
 	}
+	if isSuperAdminRole(role) {
+		if req.Code != superAdminRoleCode {
+			return perrors.New(perrors.ErrBuiltinProtected, "不允许修改超级管理员角色编码")
+		}
+		if req.Status != 1 {
+			return perrors.New(perrors.ErrBuiltinProtected, "不允许禁用超级管理员角色")
+		}
+	}
 	exists, err := s.roleRepo.ExistsByCode(ctx, req.Code, req.ID)
 	if err != nil {
 		return err
@@ -189,12 +203,15 @@ func (s *RoleService) Update(ctx context.Context, req *dto.UpdateRoleRequest) er
 
 // Delete 删除角色
 func (s *RoleService) Delete(ctx context.Context, id uint64) error {
-	_, err := s.roleRepo.FindByID(ctx, id)
+	role, err := s.roleRepo.FindByID(ctx, id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return perrors.New(perrors.ErrRoleExists, "角色不存在")
 		}
 		return err
+	}
+	if isSuperAdminRole(role) {
+		return perrors.New(perrors.ErrBuiltinProtected, "不允许删除超级管理员角色")
 	}
 	hasUser, err := s.roleRepo.HasUserAssigned(ctx, id)
 	if err != nil {
